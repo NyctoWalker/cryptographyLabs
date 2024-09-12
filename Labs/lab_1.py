@@ -1,5 +1,3 @@
-# Функция для зашифровывания символа(сделано для зашифровывания текста)
-# Посимвольное преобразование блока текста
 # Написать полиалфавитные преобразования
 # Обёртка для блоков по 4 символа, проверить работу S-Блоков
 # Усиление S-блоков
@@ -18,6 +16,18 @@ def get_letter_by_id(data_alphabet, id):
     for i in data_alphabet.keys():
         if id == data_alphabet[i]:
             return i
+
+
+def shift_letter_by_number(data_alphabet, letter, shift_value):
+    '''
+    Получает смещённый символ алфавита
+
+    :param data_alphabet: Словарь с алфавитом
+    :param letter: Буква
+    :param shift_value: Смещение
+    :return: Символ
+    '''
+    return get_letter_by_id(data_alphabet, ((data_alphabet[letter] + shift_value) % len(data_alphabet.keys())))
 
 
 def add_alphabet(data_alphabet, text):
@@ -110,5 +120,5 @@ def caesar_decode(data_alphabet, text_to_decypher, key):
 def shift_alphabet(data_alphabet, text_to_shift, shift_value):
     text_to_return = ""
     for l in text_to_shift:
-        text_to_return += get_letter_by_id(data_alphabet, ((data_alphabet[l] + shift_value) % len(data_alphabet.keys())))
+        text_to_return += shift_letter_by_number(data_alphabet, l, shift_value)
     return text_to_return

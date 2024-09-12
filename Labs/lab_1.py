@@ -122,3 +122,26 @@ def shift_alphabet(data_alphabet, text_to_shift, shift_value):
     for l in text_to_shift:
         text_to_return += shift_letter_by_number(data_alphabet, l, shift_value)
     return text_to_return
+
+
+def vidgener_encode(value, key, data_alphabet, j_in):
+    lis = ""
+    t_k = " "
+    for v in range(len(value)):
+        t_i = value[v]
+        q = (v + j_in) % len(key)
+        t_k = add_letters(data_alphabet, t_k, key[q])
+        go = add_letters(data_alphabet, t_i, t_k)
+        lis += go
+    return lis
+
+def vidgener_decode(value, key, data_alphabet, j_in):
+    lis = ""
+    t_k = " "
+    for v in range(len(value)):
+        t_i = value[v]
+        q = (v + j_in) % len(key)
+        t_k = add_letters(data_alphabet, t_k, key[q])
+        go = sub_letters(data_alphabet, t_i, t_k)
+        lis += go
+    return lis

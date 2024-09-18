@@ -1,5 +1,3 @@
-# Написать полиалфавитные преобразования
-# Обёртка для блоков по 4 символа, проверить работу S-Блоков
 # Усиление S-блоков
 
 # data_alphabet = {}
@@ -135,6 +133,7 @@ def vidgener_encode(value, key, data_alphabet, j_in):
         lis += go
     return lis
 
+
 def vidgener_decode(value, key, data_alphabet, j_in):
     lis = ""
     t_k = " "
@@ -145,3 +144,30 @@ def vidgener_decode(value, key, data_alphabet, j_in):
         go = sub_letters(data_alphabet, t_i, t_k)
         lis += go
     return lis
+
+def s_block_encode(data_alphabet, block_text, key, shift):
+    if len(block_text) != 4:
+        return "Ошибка: длина входного блока должна быть равна 4"
+    else:
+        ret = ""
+        k = len(key)
+        t_k = get_letter_by_id(data_alphabet, 0)
+        for i in range(4):
+            q = (shift + i) % k
+            t_k = add_letters(data_alphabet, t_k, key[q])
+            ret += add_letters(data_alphabet, block_text[i], t_k)
+        return ret
+
+
+def s_block_decode(data_alphabet, encoded_block_text, key, initial_shift):
+    if len(encoded_block_text) != 4:
+        return "Ошибка: длина входного блока должна быть равна 4"
+    else:
+        ret = ""
+        k = len(key)
+        t_k = get_letter_by_id(data_alphabet, 0)
+        for i in range(4):
+            q = (initial_shift + i) % k
+            t_k = add_letters(data_alphabet, t_k, key[q])
+            ret += sub_letters(data_alphabet, encoded_block_text[i], t_k)
+        return ret

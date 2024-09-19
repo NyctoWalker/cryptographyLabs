@@ -171,3 +171,40 @@ def s_block_decode(data_alphabet, encoded_block_text, key, initial_shift):
             t_k = add_letters(data_alphabet, t_k, key[q])
             ret += sub_letters(data_alphabet, encoded_block_text[i], t_k)
         return ret
+
+
+def fwd_improve_block(data_alphabet, block, key, initial_shift):
+    t = key
+    while initial_shift > len(t) - 4:
+        t = t*2
+    key = t[initial_shift:initial_shift+4]
+    k = text2array(data_alphabet, key)
+    b = text2array(data_alphabet, block)
+    q = (k[0] + k[1] + k[2] + k[3])%4
+    for i in range(3):
+        j = (q+i+1) % 4
+        l = (q+i) % 4
+        b[j] = (b[j] + b[l]) % 32
+    return array2text(data_alphabet, b)
+
+def inv_improve_block(data_alphabet, block, key, initial_shift):
+    t = key
+    while initial_shift > len(t) - 4:
+        t = t*2
+    key = t[initial_shift:initial_shift+4]
+    k = text2array(data_alphabet, key)
+    b = text2array(data_alphabet, block)
+    q = (k[0] + k[1] + k[2] + k[3])%4
+    for i in range(2, -1, -1):
+        j = (q+i+1) % 4
+        l = (q+i) % 4
+        b[j] = (b[j] - b[l] + 32) % 32
+    return array2text(data_alphabet, b)
+
+def s_block_encode_modified(data_alphabet, block, key, initial_shift):
+    tmp = s_block_encode(data_alphabet, block, key, initial_shift)
+    return fwd_improve_block(data_alphabet, tmp, key, initial_shift)
+
+def s_block_decode_modified(data_alphabet, block, key, initial_shift):
+    tmp = s_block_decode(data_alphabet, block, key, initial_shift)
+    return inv_improve_block(data_alphabet, tmp, key, initial_shift)

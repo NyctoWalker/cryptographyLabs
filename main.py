@@ -32,3 +32,10 @@ print('\n[S-блоки]')
 print(shift.s_block_encode(alphabet, "БЛОК", "ЗВЕЗДНАЯ НОЧЬ", 11)) # Должно получиться Щ КЙ
 # Должно получиться БЛОК
 print(shift.s_block_decode(alphabet, shift.s_block_encode(alphabet, "БЛОК", "ЗВЕЗДНАЯ НОЧЬ", 11), "ЗВЕЗДНАЯ НОЧЬ", 11))
+
+print('\n[Усиленные S-блоки]')
+print(shift.fwd_improve_block(alphabet, "АТОЛ", "ГОРАЦИО", 2))
+print(shift.fwd_improve_block(alphabet, "АТОЛ", "ГОРАЦИО", 3))
+
+print(shift.inv_improve_block(alphabet, shift.fwd_improve_block(alphabet, "АТОЛ", "ГОРАЦИО", 2), "ГОРАЦИО", 2))
+print(shift.inv_improve_block(alphabet, shift.fwd_improve_block(alphabet, "АТОЛ", "ГОРАЦИО", 3), "ГОРАЦИО", 3))

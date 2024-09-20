@@ -29,6 +29,7 @@ print(shift.vidgener_encode("ОЛОЛО КРИНЖ", "ПАНТЕОН", alphabet,
 print(shift.vidgener_decode(shift.vidgener_encode("ОЛОЛО КРИНЖ", "ПАНТЕОН", alphabet, 1), "ПАНТЕОН", alphabet, 1)) # Должно получиться ОЛОЛО КРИНЖ
 
 print('\n[S-блоки]')
+print(shift.s_block_encode(alphabet, "БЛО", "ЗВЕЗДНАЯ НОЧЬ", 11)) # Ошибка
 print(shift.s_block_encode(alphabet, "БЛОК", "ЗВЕЗДНАЯ НОЧЬ", 11)) # Должно получиться Щ КЙ
 # Должно получиться БЛОК
 print(shift.s_block_decode(alphabet, shift.s_block_encode(alphabet, "БЛОК", "ЗВЕЗДНАЯ НОЧЬ", 11), "ЗВЕЗДНАЯ НОЧЬ", 11))

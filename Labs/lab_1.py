@@ -1,5 +1,3 @@
-# Усиление S-блоков
-
 # data_alphabet = {}
 
 
@@ -100,6 +98,14 @@ def sub_letters(data_alphabet, letter_a, letter_b):
 
 
 def caesar_encode(data_alphabet, text_to_cypher, key):
+    '''
+    Кодирование шифром Цезаря
+
+    :param data_alphabet: Алфавит
+    :param text_to_cypher: Зашифровываемый текст
+    :param key: Ключ, от которого будет использован первый символ
+    :return: Шифротекст
+    '''
     caesar_key = key[0]
     text_to_return = ""
     for l in text_to_cypher:
@@ -108,6 +114,14 @@ def caesar_encode(data_alphabet, text_to_cypher, key):
 
 
 def caesar_decode(data_alphabet, text_to_decypher, key):
+    '''
+    Расшифровывает шифротекст, созданный с применением шифра Цезаря
+
+    :param data_alphabet: Алфавит
+    :param text_to_decypher: Шифротекст
+    :param key: Ключ, от которого будет использован первый символ
+    :return: Декодированный текст
+    '''
     caesar_key = key[0]
     text_to_return = ""
     for l in text_to_decypher:
@@ -116,6 +130,14 @@ def caesar_decode(data_alphabet, text_to_decypher, key):
 
 
 def shift_alphabet(data_alphabet, text_to_shift, shift_value):
+    '''
+    Смещает весь текст на заданное количество позиций
+
+    :param data_alphabet: Алфавит
+    :param text_to_shift: Строка для смещения по алфавиту
+    :param shift_value: Значение смещения
+    :return: Строка, соответствующая смещённому алфавиту
+    '''
     text_to_return = ""
     for l in text_to_shift:
         text_to_return += shift_letter_by_number(data_alphabet, l, shift_value)
@@ -123,6 +145,15 @@ def shift_alphabet(data_alphabet, text_to_shift, shift_value):
 
 
 def vidgener_encode(value, key, data_alphabet, j_in):
+    '''
+    Зашифровывает текст при помощи шифра Виженера
+
+    :param value: Зашифровываемый текст
+    :param key: Ключ
+    :param data_alphabet: Алфавит
+    :param j_in: Смещение
+    :return: Шифротекст
+    '''
     lis = ""
     t_k = " "
     for v in range(len(value)):
@@ -135,6 +166,15 @@ def vidgener_encode(value, key, data_alphabet, j_in):
 
 
 def vidgener_decode(value, key, data_alphabet, j_in):
+    """
+    Расшифровывает текст, закодированный при помощи шифра Виженера
+
+    :param value: Шифротекст
+    :param key: Ключ
+    :param data_alphabet: Алфавит
+    :param j_in: Смещение
+    :return: Расшифрованная строка
+    """
     lis = ""
     t_k = " "
     for v in range(len(value)):
@@ -145,7 +185,17 @@ def vidgener_decode(value, key, data_alphabet, j_in):
         lis += go
     return lis
 
+
 def s_block_encode(data_alphabet, block_text, key, shift):
+    """
+    Кодирует S-блоки по 4 символа
+
+    :param data_alphabet: Алфавит
+    :param block_text: Блок текста
+    :param key: Ключ
+    :param shift: Смещение
+    :return: Закодированный блок
+    """
     if len(block_text) != 4:
         return "Ошибка: длина входного блока должна быть равна 4"
     else:
@@ -160,6 +210,15 @@ def s_block_encode(data_alphabet, block_text, key, shift):
 
 
 def s_block_decode(data_alphabet, encoded_block_text, key, initial_shift):
+    """
+    Расшифровывает s-блок размером 4 символа
+
+    :param data_alphabet: Алфавит
+    :param encoded_block_text: Шифротекст
+    :param key: Ключ
+    :param initial_shift: Изначальное смещение, второй ключ
+    :return: Расшифрованный текст
+    """
     if len(encoded_block_text) != 4:
         return "Ошибка: длина входного блока должна быть равна 4"
     else:
@@ -187,6 +246,7 @@ def fwd_improve_block(data_alphabet, block, key, initial_shift):
         b[j] = (b[j] + b[l]) % 32
     return array2text(data_alphabet, b)
 
+
 def inv_improve_block(data_alphabet, block, key, initial_shift):
     t = key
     while initial_shift > len(t) - 4:
@@ -201,9 +261,11 @@ def inv_improve_block(data_alphabet, block, key, initial_shift):
         b[j] = (b[j] - b[l] + 32) % 32
     return array2text(data_alphabet, b)
 
+
 def s_block_encode_modified(data_alphabet, block, key, initial_shift):
     tmp = s_block_encode(data_alphabet, block, key, initial_shift)
     return fwd_improve_block(data_alphabet, tmp, key, initial_shift)
+
 
 def s_block_decode_modified(data_alphabet, block, key, initial_shift):
     tmp = s_block_decode(data_alphabet, block, key, initial_shift)

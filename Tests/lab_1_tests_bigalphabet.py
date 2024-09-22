@@ -1,7 +1,7 @@
 from Labs.lab_1 import *
 
 
-shift = Encryptor(" АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЫЬЭЮЯ")
+shift = Encryptor(" АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЫЬЭЮЯ.,?!()[];:/")
 
 print('[Алфавит]')
 print(shift.data_alphabet)

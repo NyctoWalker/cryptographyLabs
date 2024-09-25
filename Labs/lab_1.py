@@ -7,6 +7,7 @@ class Encryptor:
 
         :param alphabet: Алфавит.
         """
+
         self.data_alphabet = self.add_alphabet(alphabet)
 
     def get_letter_by_id(self, id):

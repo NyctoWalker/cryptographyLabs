@@ -12,3 +12,6 @@ print(text_as_arr)
 print(shift.array2text(text_as_arr))
 print(shift.add_letters("Я", "Ж"))
 print(shift.sub_letters("Я", "Ж"))
+
+print('\n[Проверяем блоки]')
+print(shift.block_to_number(" ЯЗЬ"))

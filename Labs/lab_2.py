@@ -122,6 +122,38 @@ class Encryptor2:
             newsymbol = str(num) + newsymbol
         return self.get_letter_by_id(newsymbol)
 
+    def xor_letters(self, letter_a, letter_b):
+        let_a_id = self.data_alphabet[letter_a]
+        let_b_id = self.data_alphabet[letter_b]
+
+        newsymbol = ""
+        for i in range(len(let_a_id)):
+            num = 0
+            if(let_b_id[i] != let_a_id[i]):
+                num = 1
+            newsymbol = newsymbol + str(num)
+
+        return self.get_letter_by_id(newsymbol)
+
+    def block_to_number(self, blockin):
+        out = ""
+        if(len(blockin) == 4):
+            tmp = self.text2array(blockin)
+            for i in range(4):
+                out = out + tmp[i]
+            return self.from_byte(out)
+        else:
+            return "input error"
+
+    def delete_zeros(self, symbol):
+        out = 0
+        for i in range(len(symbol)):
+            if(symbol[i] != "0"):
+                break
+            out = out + 1
+        return symbol[out:]
+
+
     def to_byte(self, num):
         codedsymbol = ""
         n = num
@@ -133,5 +165,7 @@ class Encryptor2:
     def from_byte(self, symbol):
         num = 0
         for i in range(len(symbol)):
-            num += 2**int(symbol[i])
+            cur = len(symbol)-1-i
+            sym = symbol[i]
+            num = num + (2**cur)*int(sym)
         return num

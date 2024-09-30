@@ -1,5 +1,3 @@
-# 1. Бинарные преобразования и блоки 20 бит в инт и обратно
-# 1. (наверное можно до 32-64 бит, просто для 32-битного алфавита каждый символ 5 бит, а блоки по 4 символа)
 # 2. Односторонняя функция через S-Блоки - 4 символа(20 бит), константа, кол-во раундов. На выходе 4 символа, 20 бит.
 # 3. Простой конгруэнтный генератор
 # 4. Усиление конгруэнтного генератора(см. лабу)
@@ -16,7 +14,6 @@ class Encryptor2:
         """
         self.data_alphabet = self.add_alphabet(alphabet)
 
-
     def add_alphabet(self, text):
         """
         Нумерует каждый символ и превращает в алфавит
@@ -25,18 +22,16 @@ class Encryptor2:
         :param text: Строка для посимвольного превращения в алфавит
         """
         data_alphabet = {}
-        alphabetlen = len(text)
-        alphabetdimension = 1
+        alphabet_len = len(text)
+        alphabet_dimension = 1
 
-        while alphabetlen > 2**alphabetdimension:
-            alphabetdimension+=1
+        while alphabet_len > 2**alphabet_dimension:
+            alphabet_dimension += 1
 
-
-        for i in range(len(text)):
+        for i in range(alphabet_len):
             num = self.to_byte(i)
-            data_alphabet[text[i]] = "0"*(alphabetdimension-len(num)) + num
+            data_alphabet[text[i]] = "0"*(alphabet_dimension - len(num)) + num
         return data_alphabet
-
 
     def text2array(self, text):
         """
@@ -46,6 +41,7 @@ class Encryptor2:
         :param text: Текст для кодирования
         :return: Массив с индексами символов
         """
+
         arr_return = []
         for i in text:
             arr_return.append(self.data_alphabet[i])
@@ -59,21 +55,23 @@ class Encryptor2:
         :param array: Массив для декодирования
         :return: Декодированная строка
         """
+
         text_return = ""
         for i in array:
             text_return = text_return + self.get_letter_by_id(i)
         return text_return
 
-    def get_letter_by_id(self, id):
+    def get_letter_by_id(self, letter_id):
         """
         Получает символ алфавита по индексу
 
         :param data_alphabet: Словарь с алфавитом
-        :param id: Индекс символа
+        :param letter_id: Индекс символа
         :return: Символ
         """
+
         for i in self.data_alphabet.keys():
-            if id == self.data_alphabet[i]:
+            if letter_id == self.data_alphabet[i]:
                 return i
 
     def add_letters(self, letter_a, letter_b):
@@ -90,14 +88,14 @@ class Encryptor2:
         let_b_id = self.data_alphabet[letter_b]
 
         numb = 0
-        newsymbol = ""
+        new_symbol = ""
         for i in range(len(let_a_id)):
             num = int(let_a_id[len(let_a_id) - 1 - i]) + int(let_b_id[len(let_b_id) - 1 - i]) + numb
-            if (num > 1):
+            if num > 1:
                 numb = 1
                 num = num - 2
-            newsymbol = str(num) + newsymbol
-        return self.get_letter_by_id(newsymbol)
+            new_symbol = str(num) + new_symbol
+        return self.get_letter_by_id(new_symbol)
 
     def sub_letters(self, letter_a, letter_b):
         """
@@ -113,56 +111,65 @@ class Encryptor2:
         let_b_id = self.data_alphabet[letter_b]
 
         numb = 0
-        newsymbol = ""
+        new_symbol = ""
         for i in range(len(let_a_id)):
             num = int(let_a_id[len(let_a_id) -1 -i]) - int(let_b_id[len(let_b_id) -1 -i]) - numb
-            if(num < 0):
+            if num < 0:
                 numb = 1
                 num = num + 2
-            newsymbol = str(num) + newsymbol
-        return self.get_letter_by_id(newsymbol)
+            new_symbol = str(num) + new_symbol
+        return self.get_letter_by_id(new_symbol)
 
     def xor_letters(self, letter_a, letter_b):
         let_a_id = self.data_alphabet[letter_a]
         let_b_id = self.data_alphabet[letter_b]
 
-        newsymbol = ""
+        new_symbol = ""
         for i in range(len(let_a_id)):
             num = 0
-            if(let_b_id[i] != let_a_id[i]):
+            if let_b_id[i] != let_a_id[i]:
                 num = 1
-            newsymbol = newsymbol + str(num)
+            new_symbol = new_symbol + str(num)
 
-        return self.get_letter_by_id(newsymbol)
+        return self.get_letter_by_id(new_symbol)
 
-    def block_to_number(self, blockin):
+    def block_to_number(self, block_in):
+        """
+        Кодирует блок из 4 символов в численное значение по двоичному представлению
+
+        :param block_in: Блок символов алфавита
+        :return: Численное значение по двоичному представлению
+        """
+
         out = ""
-        if(len(blockin) == 4):
-            tmp = self.text2array(blockin)
+        if len(block_in) == 4:
+            tmp = self.text2array(block_in)
             for i in range(4):
                 out = out + tmp[i]
             return self.from_byte(out)
         else:
-            return "input error"
+            return f"input error: ожидалось 4 символа, получено {len(block_in)}"
 
-    def delete_zeros(self, symbol):
+    @staticmethod
+    def delete_zeros(symbol):
         out = 0
         for i in range(len(symbol)):
-            if(symbol[i] != "0"):
+            if symbol[i] != "0":
                 break
             out = out + 1
         return symbol[out:]
 
-
-    def to_byte(self, num):
-        codedsymbol = ""
+    @staticmethod
+    def to_byte(num):
+        coded_symbol = ""
         n = num
         while n > 0:
-            codedsymbol = str(n % 2) + codedsymbol
+            coded_symbol = str(n % 2) + coded_symbol
             n = n // 2
-        return codedsymbol
+        return coded_symbol
 
-    def from_byte(self, symbol):
+    @staticmethod
+    def from_byte(symbol):
         num = 0
         for i in range(len(symbol)):
             cur = len(symbol)-1-i

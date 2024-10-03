@@ -150,6 +150,84 @@ class Encryptor2:
         else:
             return f"input error: ожидалось 4 символа, получено {len(block_in)}"
 
+    #недоделано-----------------------------------------------------------------------------------------------------
+    def oneside_ceaser(self, block, const, n):
+        data = block
+        c = len(const)
+        C = "ТПУ"+const+const[0:4]
+        key = C[3:4]
+        for i in range(n):
+            q = (i*4)%c+3
+            #tmp = fwd_Ceaser_S
+            #s =
+
+    def make_coef(self, bpr, spr, pow):
+        ss = min(spr)
+        bs = min(bpr)
+        bb = max(bpr)
+        sb = max(spr)
+        maximum = 2**pow - 1
+        tmp = bs*ss
+        a = ss * bs * sb + 1
+        c = bb
+        for i in range(pow):
+            if tmp*ss >= maximum:
+                break
+            else:
+                tmp = tmp*ss
+        m = tmp
+        if (a<m)or(c<m):
+            out = [a, c, m]
+        else:
+            out = "wrong"
+        return out
+
+
+    def LCG_Next(self, state, coefs):
+        a = coefs
+        return (a[0]*state+a[1])%a[2]
+
+    def HCLGG(self, state, set):
+        first = self.LCG_Next(state[0], set[0])
+        second = self.LCG_Next(state[1], set[1])
+        control = self.LCG_Next(state[2], set[2])
+        n = self.count_bits(control)
+        if control%2 == 0:
+            out = self.compose_num(first, second, n)
+        else:
+            out = self.compose_num(second, first, n)
+        state_out = [first, second, control]
+        return [out, state_out]
+
+    def count_bits(self, num):
+        rem = num
+        out = 0
+        for i in range(20):
+            tmp = rem%2
+            rem = rem//2
+            out = out +tmp
+        return out
+
+    def compose_num(self, num1, num2, cont):
+        tmp = []
+        if(cont > 0) and (cont < 20):
+            arr1 = self.to_byte(num1)
+            arr2 = self.to_byte(num2)
+            if(len(arr1) < len(arr2)):
+                arr1 = self.to_len(arr1, len(arr2))
+            elif(len(arr1) > len(arr2)):
+                arr2 = self.to_len(arr2, len(arr1))
+            for i in range(cont):
+                tmp.append(arr1[i])
+            for i in range(cont, 20):
+                tmp.append(arr2[i])
+            out = self.from_byte(tmp)
+        elif cont == 0:
+            out = num1
+        else:
+            out = num2
+        return out
+
     @staticmethod
     def delete_zeros(symbol):
         out = 0
@@ -158,6 +236,12 @@ class Encryptor2:
                 break
             out = out + 1
         return symbol[out:]
+
+    @staticmethod
+    def to_len(symbol, length):
+        outlen = length - len(symbol)
+        return "0"*outlen + symbol
+
 
     @staticmethod
     def to_byte(num):

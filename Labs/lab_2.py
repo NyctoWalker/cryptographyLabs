@@ -1,4 +1,3 @@
-# 2. Односторонняя функция через S-Блоки - 4 символа(20 бит), константа, кол-во раундов. На выходе 4 символа, 20 бит.
 # 3. Простой конгруэнтный генератор
 # 4. Усиление конгруэнтного генератора(см. лабу)
 # 5. Интерфейс для распараллеливания 4 генераторов(?)
@@ -151,17 +150,43 @@ class Encryptor2:
             return f"input error: ожидалось 4 символа, получено {len(block_in)}"
 
     #недоделано-----------------------------------------------------------------------------------------------------
-    def oneside_ceaser(self, block, const, n):
-        data = block
+    def caesar_encode(self, text_to_cypher, key):
+        """
+        Кодирование шифром Цезаря
+
+        :param data_alphabet: Алфавит
+        :param text_to_cypher: Зашифровываемый текст
+        :param key: Ключ, от которого будет использован первый символ
+        :return: Шифротекст
+        """
+        caesar_key = key[0]
+        text_to_return = ""
+        for l in text_to_cypher:
+            text_to_return += self.add_letters(l, caesar_key)
+        return text_to_return
+
+    def shift_letter_by_number(self, letter, shift_value):
+        return self.get_letter_by_id(((self.data_alphabet[letter] + shift_value) % len(self.data_alphabet.keys())))
+
+    def shift_alphabet(self, text_to_shift, shift_value):
+        text_to_return = ""
+        for l in text_to_shift:
+            text_to_return += self.shift_letter_by_number(l, shift_value)
+        return text_to_return
+
+    def oneside_caesar(self, block: str, const, n):
         c = len(const)
         C = "ТПУ"+const+const[0:4]
-        key = C[3:4]
+        key: str = C[3]
         for i in range(n):
-            q = (i*4)%c+3
-            #tmp = fwd_Ceaser_S
-            #s =
+            q = (i*4) % c + 3
+            tmp = self.caesar_encode(block, key)
+            s = self.block_to_number(tmp) % 4
+            key = (tmp + C[q-s:4])
+        return key
 
-    def make_coef(self, bpr, spr, pow):
+    @staticmethod
+    def make_coef(bpr, spr, pow):
         ss = min(spr)
         bs = min(bpr)
         bb = max(bpr)
@@ -176,36 +201,36 @@ class Encryptor2:
             else:
                 tmp = tmp*ss
         m = tmp
-        if (a<m)or(c<m):
+        if (a < m) or (c < m):
             out = [a, c, m]
         else:
             out = "wrong"
         return out
 
-
     def LCG_Next(self, state, coefs):
         a = coefs
-        return (a[0]*state+a[1])%a[2]
+        return (a[0]*state+a[1]) % a[2]
 
     def HCLGG(self, state, set):
         first = self.LCG_Next(state[0], set[0])
         second = self.LCG_Next(state[1], set[1])
         control = self.LCG_Next(state[2], set[2])
         n = self.count_bits(control)
-        if control%2 == 0:
+        if control % 2 == 0:
             out = self.compose_num(first, second, n)
         else:
             out = self.compose_num(second, first, n)
         state_out = [first, second, control]
         return [out, state_out]
 
-    def count_bits(self, num):
+    @staticmethod
+    def count_bits(num):
         rem = num
         out = 0
         for i in range(20):
-            tmp = rem%2
+            tmp = rem % 2
             rem = rem//2
-            out = out +tmp
+            out = out + tmp
         return out
 
     def compose_num(self, num1, num2, cont):
@@ -213,9 +238,9 @@ class Encryptor2:
         if(cont > 0) and (cont < 20):
             arr1 = self.to_byte(num1)
             arr2 = self.to_byte(num2)
-            if(len(arr1) < len(arr2)):
+            if len(arr1) < len(arr2):
                 arr1 = self.to_len(arr1, len(arr2))
-            elif(len(arr1) > len(arr2)):
+            elif len(arr1) > len(arr2):
                 arr2 = self.to_len(arr2, len(arr1))
             for i in range(cont):
                 tmp.append(arr1[i])
@@ -239,9 +264,8 @@ class Encryptor2:
 
     @staticmethod
     def to_len(symbol, length):
-        outlen = length - len(symbol)
-        return "0"*outlen + symbol
-
+        out_len = length - len(symbol)
+        return "0"*out_len + symbol
 
     @staticmethod
     def to_byte(num):

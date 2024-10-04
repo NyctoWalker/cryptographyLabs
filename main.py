@@ -11,7 +11,7 @@ text_as_arr = shift.text2array("ВСЕМ ПРИВЕТ")
 print(text_as_arr)
 print(shift.array2text(text_as_arr))
 print(shift.add_letters("Я", "Ж"))
-print(shift.sub_letters("Я", "Ж"))
+print(shift.sub_letters("Е", "Ж"))
 
 print('\n[Проверяем блоки]')
 print(shift.block_to_number("АБВГ"))
@@ -33,7 +33,7 @@ print(shift.to_byte(1048575))
 print(shift.from_byte('11111111111111111111'))
 
 print("\n[Цезарь]")
-print(shift.oneside_caesar('ВАСЯ', 'АААА', 1))
+print(shift.oneside_caesar('ВАСЯ', '    ', 10))
 
 print("\n[LCG]")
 print(shift.make_coef([8677, 739], [11, 89], 20))
@@ -44,4 +44,4 @@ print(shift.count_bits(723482))
 
 print(shift.compose_num(723482, 1231, 10))
 
-
+print(shift.array2text(shift.to_byte(shift.LCG_Next(shift.block_to_number("ЛУЛУ"), [723482, 8677, 983609]))))

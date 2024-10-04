@@ -11,7 +11,7 @@ class Encryptor2:
 
         :param alphabet: Алфавит.
         """
-        self.data_alphabet = self.add_alphabet(alphabet)
+        self.data_alphabet, self.dimension = self.add_alphabet(alphabet)
 
     def add_alphabet(self, text):
         """
@@ -28,9 +28,13 @@ class Encryptor2:
             alphabet_dimension += 1
 
         for i in range(alphabet_len):
-            num = self.to_byte(i)
-            data_alphabet[text[i]] = "0"*(alphabet_dimension - len(num)) + num
-        return data_alphabet
+            coded_symbol = ""
+            n = i
+            while n > 0:
+                coded_symbol = str(n % 2) + coded_symbol
+                n = n // 2
+            data_alphabet[text[i]] = "0"*(alphabet_dimension - len(coded_symbol)) + coded_symbol
+        return data_alphabet, alphabet_dimension
 
     def text2array(self, text):
         """
@@ -174,16 +178,63 @@ class Encryptor2:
             text_to_return += self.shift_letter_by_number(l, shift_value)
         return text_to_return
 
+    def s_block_encode(self, block_text, key, shift):
+        """
+        Кодирует S-блоки по 4 символа
+
+        :param data_alphabet: Алфавит
+        :param block_text: Блок текста
+        :param key: Ключ
+        :param shift: Смещение
+        :return: Закодированный блок
+        """
+        if len(block_text) != 4:
+            return "Ошибка: длина входного блока должна быть равна 4"
+        else:
+            ret = ""
+            k = len(key)
+            t_k = self.get_letter_by_id('00000')
+            for i in range(4):
+                q = (shift + i) % k
+                t_k = self.add_letters(t_k, key[q])
+                ret += self.add_letters(block_text[i], t_k)
+            return ret
+
+    def fwd_improve_block(self, block, key, initial_shift):
+        t = key
+        while initial_shift > len(t) - 4:
+            t = t*2
+        key = t[initial_shift:initial_shift+4]
+        k = self.text2array(key)
+        b = self.text2array(block)
+        q = (self.from_byte(k[0]) + self.from_byte(k[1]) + self.from_byte(k[2]) + self.from_byte(k[3])) % 4
+        for i in range(3):
+            j = (q+i+1) % 4
+            l = (q+i) % 4
+            #_b = self.from_byte(b[l]) if type(b[l]) == str else b[l]
+            b[j] = self.to_byte((self.from_byte(b[j]) + self.from_byte(b[l])) % len(self.data_alphabet))
+        return self.array2text(b)
+
+    def s_block_encode_modified(self, block, key, initial_shift):
+        tmp = self.s_block_encode(block, key, initial_shift)
+        return self.fwd_improve_block(tmp, key, initial_shift)
+
     def oneside_caesar(self, block: str, const, n):
         c = len(const)
         C = "ТПУ"+const+const[0:4]
-        key: str = C[3]
+        tmp = ""
+        key: str = C[3:7]
+        out = []
         for i in range(n):
             q = (i*4) % c + 3
-            tmp = self.caesar_encode(block, key)
+            tmp = self.s_block_encode_modified(block, key, 0)
             s = self.block_to_number(tmp) % 4
-            key = (tmp + C[q-s:4])
-        return key
+            new_key = ""
+            for j in range(4):
+                new_key += self.add_letters(tmp[j], C[q-s+j])
+            key = new_key
+            out.append(tmp)
+        return tmp, out
 
     @staticmethod
     def make_coef(bpr, spr, pow):
@@ -267,14 +318,13 @@ class Encryptor2:
         out_len = length - len(symbol)
         return "0"*out_len + symbol
 
-    @staticmethod
-    def to_byte(num):
+    def to_byte(self, num):
         coded_symbol = ""
         n = num
         while n > 0:
             coded_symbol = str(n % 2) + coded_symbol
             n = n // 2
-        return coded_symbol
+        return '0' * (self.dimension - len(coded_symbol)) + coded_symbol
 
     @staticmethod
     def from_byte(symbol):

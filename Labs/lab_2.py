@@ -64,6 +64,12 @@ class Encryptor2:
             text_return = text_return + self.get_letter_by_id(i)
         return text_return
 
+    def byte_to_byte_array(self, _bytes: str):
+        out: list(str) = []
+        for i in range(self.dimension-1):
+            out.append(_bytes[i*self.dimension:i*self.dimension + self.dimension])
+        return out
+
     def get_letter_by_id(self, letter_id):
         """
         Получает символ алфавита по индексу
@@ -334,3 +340,9 @@ class Encryptor2:
             sym = symbol[i]
             num = num + (2**cur)*int(sym)
         return num
+
+    def from_byte_block(self, block: str):
+        out: str = ""
+        for l in block:
+            out += self.from_byte(l)
+        return out

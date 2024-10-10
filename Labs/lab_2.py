@@ -318,7 +318,7 @@ class Encryptor2:
             state = state_in
             check = True
         if check:
-            for i in range(4):
+            for j in range(4):
                 tmp = 0
                 sign = 1
                 for i in range(4):

@@ -44,26 +44,44 @@ print(shift.s_block_encode_modified('КРУТ', 'РОЗА', 0)) #ДРМИ
 print("\n[LCG coefs]")
 print(shift.make_coef([8677, 739], [11, 89], 20))
 print(shift.make_coef([7927, 151], [3, 113], 20))
+print(shift.make_coef([6949, 137], [19, 211], 20))
+print(shift.make_coef([9109, 79], [23, 139], 20))
+print(shift.make_coef([5107, 1571], [5, 29], 20))
+print(shift.make_coef([8971, 193], [17, 109], 20))
 
 print(shift.count_bits(1231))
 print(shift.count_bits(723482))
 
+print(shift.compose_num(723482, 1231, 0))
+print(shift.compose_num(723482, 1231, 20))
 print(shift.compose_num(723482, 1231, 10))
 
 print("\n[LCG]")
 LCG_set = [723482, 8677, 983609]
 out1 = []
 out1txt = []
-out1.append(shift.LCG_Next(shift.block_to_number("ЛУЛУ"), [723482, 8677, 983609]))
+out1.append(shift.LCG_Next(shift.block_to_number("ЛУЛУ"), LCG_set))
 out1txt.append(shift.number_to_block(out1[0]))
 print(out1[0])
 for i in range(1, 10):
-    out1.append(shift.LCG_Next(out1[i-1], [723482, 8677, 983609]))
+    out1.append(shift.LCG_Next(out1[i-1], LCG_set))
     out1txt.append(shift.number_to_block(out1[i]))
 print(out1txt)
 
+# В примере указан out1 место out2
+out2 = []
+out2txt = []
+out2.append(shift.LCG_Next(shift.block_to_number("ЯВОР"), LCG_set))
+out2txt.append(shift.number_to_block(out2[0]))
+print(out2[0])
+for i in range(1, 10):
+    out2.append(shift.LCG_Next(out2[i-1], LCG_set))
+    out2txt.append(shift.number_to_block(out2[i]))
+print(out2txt)
+
 
 print("\n[LCG-SEED]")
+
 seed1 = ["АПЧХ","Ч ОК","ШУРА"]
 seed2 = shift.make_seed("КОЛА")
 print("SEED2:")
@@ -98,7 +116,8 @@ print("\n[LCG-ЦЕЗАРЬ]")
 
 outceas = []
 intern = []
-a, b = shift.wrap_CHCLCG_next("up", -1, seed1, set) # О КАКОМ SEED ИДЕТ РЕЧЬ, ЧТО ЭТО
+# a, b = shift.wrap_CHCLCG_next("up", -1, seed1, set) # О КАКОМ SEED ИДЕТ РЕЧЬ, ЧТО ЭТО
+a, b = shift.wrap_CHCLCG_next("up", -1, "АБВГДЕЖЗИЙКЛМНОП", set)
 outceas.append(a)
 intern.append(b)
 for i in range(1, 9):

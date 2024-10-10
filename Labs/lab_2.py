@@ -159,6 +159,15 @@ class Encryptor2:
         else:
             return f"input error: ожидалось 4 символа, получено {len(block_in)}"
 
+    def number_to_block(self, number):
+        bin = self.to_byte(number)
+        out = ""
+        if(len(bin) < 20):
+            bin = "0"*(20 - len(bin)) + bin
+        for i in range(4):
+            out += self.array2text([bin[i*5:i*5+5]])
+        return out
+
     #недоделано-----------------------------------------------------------------------------------------------------
     def caesar_encode(self, text_to_cypher, key):
         """
@@ -240,7 +249,8 @@ class Encryptor2:
                 new_key += self.add_letters(tmp[j], C[q-s+j])
             key = new_key
             out.append(tmp)
-        return tmp, out
+        return tmp
+        #return tmp, out
 
     @staticmethod
     def make_coef(bpr, spr, pow):
@@ -264,6 +274,21 @@ class Encryptor2:
             out = "wrong"
         return out
 
+    def make_seed(self, block):
+        str1 = "ПЕРВЫЙ ГЕНЕРАТОР"
+        str2 = "ВТОРОЙ ГЕНЕРАТОР"
+        str3 = "ТРЕТИЙ ГЕНЕРАТОР"
+        out = []
+        out.append(self.oneside_caesar(block, str1, 10))
+        out.append(self.oneside_caesar(block, str2, 10))
+        out.append(self.oneside_caesar(block, str3, 10))
+        return out
+
+    def seed_to_numbers(self, arrayseed):
+        out = []
+        for i in range(3):
+            out.append(self.block_to_number(arrayseed[i]))
+        return out
     def LCG_Next(self, state, coefs):
         a = coefs
         return (a[0]*state+a[1]) % a[2]
@@ -280,6 +305,30 @@ class Encryptor2:
         state_out = [first, second, control]
         return [out, state_out]
 
+    def wrap_CHCLCG_next(self, init_flag, state_in, seed, set):
+        out = ""
+        stream = ""
+        check = False
+        state = []
+        if init_flag == "up":
+            for i in range(4):
+                state.append(self.seed_to_numbers(self.make_seed(seed[i*4:i*4+4])))
+            check = True
+        elif(init_flag == "down"):
+            state = state_in
+            check = True
+        if check:
+            for i in range(4):
+                tmp = 0
+                sign = 1
+                for i in range(4):
+                    T = self.HCLGG(state[i], set)
+                    state[i] = T[i]
+                    tmp = (1048576 + sign*T[0]+tmp)%1048576
+                    sign = -sign
+                stream = stream + self.number_to_block(tmp)
+            out = [stream, state]
+        return out
     @staticmethod
     def count_bits(num):
         rem = num
@@ -299,6 +348,10 @@ class Encryptor2:
                 arr1 = self.to_len(arr1, len(arr2))
             elif len(arr1) > len(arr2):
                 arr2 = self.to_len(arr2, len(arr1))
+            if(len(arr1)<20):
+                arr1 = "0"*(20 - len(arr1)) + arr1
+            if (len(arr2) < 20):
+                arr2 = "0" * (20 - len(arr2)) + arr2
             for i in range(cont):
                 tmp.append(arr1[i])
             for i in range(cont, 20):

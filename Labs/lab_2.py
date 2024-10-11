@@ -323,8 +323,8 @@ class Encryptor2:
                 sign = 1
                 for i in range(4):
                     T = self.HCLGG(state[i], set)
-                    state[i] = T[i]
-                    tmp = (1048576 + sign*T[0]+tmp)%1048576
+                    state[i] = T[1]
+                    tmp = (1048576 + sign*T[0]+tmp) % 1048576
                     sign = -sign
                 stream = stream + self.number_to_block(tmp)
             out = [stream, state]

@@ -31,6 +31,7 @@ print(shift.vidgener_decode(shift.vidgener_encode("ОЛОЛО КРИНЖ", "ПА
 print('\n[S-блоки]')
 print(shift.s_block_encode("БЛО", "ЗВЕЗДНАЯ НОЧЬ", 11)) # Ошибка
 print(shift.s_block_encode("БЛОК", "ЗВЕЗДНАЯ НОЧЬ", 11)) # Должно получиться Щ КЙ
+print(shift.s_block_encode("РОКТ", "А  А", 0))
 # Должно получиться БЛОК
 print(shift.s_block_decode(shift.s_block_encode("БЛОК", "ЗВЕЗДНАЯ НОЧЬ", 11), "ЗВЕЗДНАЯ НОЧЬ", 11))
 

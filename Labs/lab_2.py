@@ -100,6 +100,7 @@ class Encryptor2:
         new_symbol = ""
         for i in range(len(let_a_id)):
             num = int(let_a_id[len(let_a_id) - 1 - i]) + int(let_b_id[len(let_b_id) - 1 - i]) + numb
+            numb = 0
             if num > 1:
                 numb = 1
                 num = num - 2
@@ -123,6 +124,7 @@ class Encryptor2:
         new_symbol = ""
         for i in range(len(let_a_id)):
             num = int(let_a_id[len(let_a_id) -1 -i]) - int(let_b_id[len(let_b_id) -1 -i]) - numb
+            numb = 0
             if num < 0:
                 numb = 1
                 num = num + 2
@@ -168,22 +170,6 @@ class Encryptor2:
             out += self.array2text([bin[i*5:i*5+5]])
         return out
 
-    #недоделано-----------------------------------------------------------------------------------------------------
-    def caesar_encode(self, text_to_cypher, key):
-        """
-        Кодирование шифром Цезаря
-
-        :param data_alphabet: Алфавит
-        :param text_to_cypher: Зашифровываемый текст
-        :param key: Ключ, от которого будет использован первый символ
-        :return: Шифротекст
-        """
-        caesar_key = key[0]
-        text_to_return = ""
-        for l in text_to_cypher:
-            text_to_return += self.add_letters(l, caesar_key)
-        return text_to_return
-
     def shift_letter_by_number(self, letter, shift_value):
         return self.get_letter_by_id(((self.data_alphabet[letter] + shift_value) % len(self.data_alphabet.keys())))
 
@@ -205,15 +191,14 @@ class Encryptor2:
         """
         if len(block_text) != 4:
             return "Ошибка: длина входного блока должна быть равна 4"
-        else:
-            ret = ""
-            k = len(key)
-            t_k = self.get_letter_by_id('00000')
-            for i in range(4):
-                q = (shift + i) % k
-                t_k = self.add_letters(t_k, key[q])
-                ret += self.add_letters(block_text[i], t_k)
-            return ret
+        ret = ""
+        k = len(key)
+        t_k = self.get_letter_by_id('00000')
+        for i in range(4):
+            q = (shift + i) % k
+            t_k = self.add_letters(t_k, key[q])
+            ret += self.add_letters(block_text[i], t_k)
+        return ret
 
     def fwd_improve_block(self, block, key, initial_shift):
         t = key
@@ -289,6 +274,18 @@ class Encryptor2:
         for i in range(3):
             out.append(self.block_to_number(arrayseed[i]))
         return out
+
+    def check_seed(self, block):
+        C = "ОТВЕТСТВЕННЫЙ ПОДХОД"
+        T = []
+        for i in range(4):
+            T.append(block[i*4:i*4+4])
+        for i in range(3):
+            for j in range(i+1, 4):
+                if T[j] == T[i]:
+                    T[j] = self.oneside_caesar(T[i], C, i+j*2)
+        return T[0]+T[1]+T[2]+T[3]
+
     def LCG_Next(self, state, coefs):
         a = coefs
         return (a[0]*state+a[1]) % a[2]
@@ -329,6 +326,7 @@ class Encryptor2:
                 stream = stream + self.number_to_block(tmp)
             out = [stream, state]
         return out
+
     @staticmethod
     def count_bits(num):
         rem = num

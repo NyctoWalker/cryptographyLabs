@@ -10,8 +10,8 @@ print('\n[Работа с алфавитом]')
 text_as_arr = shift.text2array("ВСЕМ ПРИВЕТ")
 print(text_as_arr)
 print(shift.array2text(text_as_arr))
-print(shift.add_letters("Я", "Ж"))
-print(shift.sub_letters("Е", "Ж"))
+print(shift.add_letters("А", "В"))
+print(shift.sub_letters("Б", "В"))
 
 print('\n[Проверяем блоки]')
 print(shift.block_to_number("АБВГ"))
@@ -36,8 +36,8 @@ print(shift.to_byte(374003))
 print(shift.from_byte('01011011010011110011'))
 
 print("\n[Цезарь]")
-print(shift.oneside_caesar('КРУТ', 'РОЗА', 6))
-print(shift.s_block_encode('БЛОК', 'ЗВЕЗДНАЯ НОЧЬ', 11))
+print(shift.oneside_caesar('ВАСЯ', 'ББББ', 6))
+print(shift.s_block_encode('РОКК', 'ГОРА', 1))
 print(shift.fwd_improve_block('АТОЛ', 'ГОРАЦИО', 2)) #ЬООЫ
 print(shift.s_block_encode_modified('КРУТ', 'РОЗА', 0)) #ДРМИ
 
@@ -126,3 +126,10 @@ for i in range(1, 9):
     intern.append(b)
 print(outceas)
 print(intern)
+
+
+print("\n[CHECK-SEED]")
+print(shift.check_seed("ААААААААББББББББ"))
+print(shift.check_seed("ВВВВГГГГАААААААА"))
+print(shift.check_seed("АААААААААААААААА"))
+print(shift.check_seed("                "))

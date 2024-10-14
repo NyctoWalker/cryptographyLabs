@@ -4,7 +4,7 @@
 # 6. Исключение слабых и эквивалентных ключей
 
 
-class Encryptor2:
+class BinaryEncryptor:
     def __init__(self, alphabet):
         """
         Класс, отвечающий за шифрование.
@@ -13,6 +13,10 @@ class Encryptor2:
         """
         self.data_alphabet, self.dimension = self.add_alphabet(alphabet)
 
+    # region BinaryEncoder
+    '''
+    Регион содержит алфавитные преобразования и работу с двоичными операциями
+    '''
     def add_alphabet(self, text):
         """
         Нумерует каждый символ и превращает в алфавит
@@ -65,6 +69,10 @@ class Encryptor2:
         return text_return
 
     def byte_to_byte_array(self, _bytes: str):
+        """
+        Разделяет битовую строку в массив байтов
+        """
+
         out: list(str) = []
         for i in range(self.dimension-1):
             out.append(_bytes[i*self.dimension:i*self.dimension + self.dimension])
@@ -83,6 +91,99 @@ class Encryptor2:
             if letter_id == self.data_alphabet[i]:
                 return i
 
+    @staticmethod
+    def delete_zeros(symbol):
+        out = 0
+        for i in range(len(symbol)):
+            if symbol[i] != "0":
+                break
+            out = out + 1
+        return symbol[out:]
+
+    @staticmethod
+    def to_len(symbol, length):
+        out_len = length - len(symbol)
+        return "0"*out_len + symbol
+
+    def to_byte(self, num: int):
+        """
+        Конвертирует число в битовую строку
+        """
+        coded_symbol = ""
+        n = num
+        while n > 0:
+            coded_symbol = str(n % 2) + coded_symbol
+            n = n // 2
+        return '0' * (self.dimension - len(coded_symbol)) + coded_symbol
+
+    @staticmethod
+    def from_byte(symbol: str):
+        """
+        Конвертирует битовую строку для символа алфавита в число
+
+        :param symbol: Битовая строка, соответствующая символу
+        :return: Число
+        """
+        num = 0
+        for i in range(len(symbol)):
+            cur = len(symbol)-1-i
+            sym = symbol[i]
+            num = num + (2**cur)*int(sym)
+        return num
+
+    def from_byte_block(self, block: str):
+        out: str = ""
+        for l in block:
+            out += self.from_byte(l)
+        return out
+
+    def xor_letters(self, letter_a, letter_b):
+        let_a_id = self.data_alphabet[letter_a]
+        let_b_id = self.data_alphabet[letter_b]
+
+        new_symbol = ""
+        for i in range(len(let_a_id)):
+            num = 0
+            if let_b_id[i] != let_a_id[i]:
+                num = 1
+            new_symbol = new_symbol + str(num)
+
+        return self.get_letter_by_id(new_symbol)
+
+    def block_to_number(self, block_in: str):
+        """
+        Кодирует блок из 4 символов в численное значение по двоичному представлению
+
+        :param block_in: Блок символов алфавита
+        :return: Численное значение по двоичному представлению
+        """
+
+        out = ""
+        if len(block_in) == 4:
+            tmp = self.text2array(block_in)
+            for i in range(4):
+                out = out + tmp[i]
+            return self.from_byte(out)
+        else:
+            return f"input error: ожидалось 4 символа, получено {len(block_in)}"
+
+    def number_to_block(self, number: int):
+        """
+        Конвертирует число в текстовый блок
+        """
+        bin = self.to_byte(number)
+        out = ""
+        if len(bin) < 20:
+            bin = "0"*(20 - len(bin)) + bin
+        for i in range(4):
+            out += self.array2text([bin[i*5:i*5+5]])
+        return out
+    # endregion
+
+    # region AlphabetEncoder
+    '''
+    Блок содержит операции для смещения алфавита, а также различные имплементации шифра Цезаря
+    '''
     def add_letters(self, letter_a, letter_b):
         """
         Получает символ из суммы индексов двух букв
@@ -131,49 +232,16 @@ class Encryptor2:
             new_symbol = str(num) + new_symbol
         return self.get_letter_by_id(new_symbol)
 
-    def xor_letters(self, letter_a, letter_b):
-        let_a_id = self.data_alphabet[letter_a]
-        let_b_id = self.data_alphabet[letter_b]
-
-        new_symbol = ""
-        for i in range(len(let_a_id)):
-            num = 0
-            if let_b_id[i] != let_a_id[i]:
-                num = 1
-            new_symbol = new_symbol + str(num)
-
-        return self.get_letter_by_id(new_symbol)
-
-    def block_to_number(self, block_in):
-        """
-        Кодирует блок из 4 символов в численное значение по двоичному представлению
-
-        :param block_in: Блок символов алфавита
-        :return: Численное значение по двоичному представлению
-        """
-
-        out = ""
-        if len(block_in) == 4:
-            tmp = self.text2array(block_in)
-            for i in range(4):
-                out = out + tmp[i]
-            return self.from_byte(out)
-        else:
-            return f"input error: ожидалось 4 символа, получено {len(block_in)}"
-
-    def number_to_block(self, number):
-        bin = self.to_byte(number)
-        out = ""
-        if(len(bin) < 20):
-            bin = "0"*(20 - len(bin)) + bin
-        for i in range(4):
-            out += self.array2text([bin[i*5:i*5+5]])
-        return out
-
     def shift_letter_by_number(self, letter, shift_value):
+        """
+        Смещает символ алфавита на заданное значение смещения
+        """
         return self.get_letter_by_id(((self.data_alphabet[letter] + shift_value) % len(self.data_alphabet.keys())))
 
     def shift_alphabet(self, text_to_shift, shift_value):
+        """
+        Смещает алфавит для блока текста на заданное значение смещения и выдаёт эквивалентную строку
+        """
         text_to_return = ""
         for l in text_to_shift:
             text_to_return += self.shift_letter_by_number(l, shift_value)
@@ -201,6 +269,14 @@ class Encryptor2:
         return ret
 
     def fwd_improve_block(self, block, key, initial_shift):
+        """
+        Улучшенный шифр Цезаря для произвольного блока текста
+
+        :param block: Блок текста
+        :param key: Ключ шифрования
+        :param initial_shift: Холостое смещение
+        :return: Шифротекст
+        """
         t = key
         while initial_shift > len(t) - 4:
             t = t*2
@@ -216,10 +292,16 @@ class Encryptor2:
         return self.array2text(b)
 
     def s_block_encode_modified(self, block, key, initial_shift):
+        """
+        Кодирует блок из 4 символов улучшенным шифром Цезаря
+        """
         tmp = self.s_block_encode(block, key, initial_shift)
         return self.fwd_improve_block(tmp, key, initial_shift)
 
     def oneside_caesar(self, block: str, const, n):
+        """
+        Усложнённый улучшенный шифр Цезаря с секретным смещающимся ключом
+        """
         c = len(const)
         C = "ТПУ"+const+const[0:4]
         tmp = ""
@@ -236,7 +318,12 @@ class Encryptor2:
             out.append(tmp)
         return tmp
         #return tmp, out
+    # endregion
 
+    # region Generator
+    '''
+    Содержит реализацию LCG и других функций для генераторов
+    '''
     @staticmethod
     def make_coef(bpr, spr, pow):
         ss = min(spr)
@@ -287,6 +374,9 @@ class Encryptor2:
         return T[0]+T[1]+T[2]+T[3]
 
     def LCG_Next(self, state, coefs):
+        """
+        Прямая проходка по генератору LCG
+        """
         a = coefs
         return (a[0]*state+a[1]) % a[2]
 
@@ -328,7 +418,10 @@ class Encryptor2:
         return out
 
     @staticmethod
-    def count_bits(num):
+    def count_bits(num: int):
+        """
+        Рассчитывает количество бит в эквивалентном битовом представлении целого числа
+        """
         rem = num
         out = 0
         for i in range(20):
@@ -346,9 +439,9 @@ class Encryptor2:
                 arr1 = self.to_len(arr1, len(arr2))
             elif len(arr1) > len(arr2):
                 arr2 = self.to_len(arr2, len(arr1))
-            if(len(arr1)<20):
+            if len(arr1) < 20:
                 arr1 = "0"*(20 - len(arr1)) + arr1
-            if (len(arr2) < 20):
+            if len(arr2) < 20:
                 arr2 = "0" * (20 - len(arr2)) + arr2
             for i in range(cont):
                 tmp.append(arr1[i])
@@ -360,40 +453,4 @@ class Encryptor2:
         else:
             out = num2
         return out
-
-    @staticmethod
-    def delete_zeros(symbol):
-        out = 0
-        for i in range(len(symbol)):
-            if symbol[i] != "0":
-                break
-            out = out + 1
-        return symbol[out:]
-
-    @staticmethod
-    def to_len(symbol, length):
-        out_len = length - len(symbol)
-        return "0"*out_len + symbol
-
-    def to_byte(self, num):
-        coded_symbol = ""
-        n = num
-        while n > 0:
-            coded_symbol = str(n % 2) + coded_symbol
-            n = n // 2
-        return '0' * (self.dimension - len(coded_symbol)) + coded_symbol
-
-    @staticmethod
-    def from_byte(symbol):
-        num = 0
-        for i in range(len(symbol)):
-            cur = len(symbol)-1-i
-            sym = symbol[i]
-            num = num + (2**cur)*int(sym)
-        return num
-
-    def from_byte_block(self, block: str):
-        out: str = ""
-        for l in block:
-            out += self.from_byte(l)
-        return out
+    # endregion

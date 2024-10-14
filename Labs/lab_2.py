@@ -137,7 +137,7 @@ class BinaryEncryptor:
             out += self.from_byte(l)
         return out
 
-    def xor_letters(self, letter_a, letter_b):
+    def xor_letters(self, letter_a: str, letter_b: str):
         let_a_id = self.data_alphabet[letter_a]
         let_b_id = self.data_alphabet[letter_b]
 
@@ -149,6 +149,19 @@ class BinaryEncryptor:
             new_symbol = new_symbol + str(num)
 
         return self.get_letter_by_id(new_symbol)
+
+    def xor_block(self, block_a: str, block_b: str):
+        la, lb = len(block_a), len(block_b)
+        if la == 0 or lb == 0:
+            raise ValueError('На вход xor получена пустая строка')
+        if la != lb:
+            raise ValueError('Длина блоков для xor не совпадает')
+        else:
+            out: str = ""
+            for i in range(la):
+                out += self.xor_letters(block_a[i], block_b[i])
+        return out
+
 
     def block_to_number(self, block_in: str):
         """
@@ -208,6 +221,12 @@ class BinaryEncryptor:
             new_symbol = str(num) + new_symbol
         return self.get_letter_by_id(new_symbol)
 
+    def add_block(self, block_a: str, block_b: str):
+        out: str = ""
+        for i in range(len(block_a)):
+            out += self.add_letters(block_a[i], block_b[i])
+        return out
+
     def sub_letters(self, letter_a, letter_b):
         """
         Получает символ из вычетания индексов двух букв
@@ -231,6 +250,12 @@ class BinaryEncryptor:
                 num = num + 2
             new_symbol = str(num) + new_symbol
         return self.get_letter_by_id(new_symbol)
+
+    def sub_block(self, block_a: str, block_b: str):
+        out: str = ""
+        for i in range(len(block_a)):
+            out += self.sub_letters(block_a[i], block_b[i])
+        return out
 
     def shift_letter_by_number(self, letter, shift_value):
         """
@@ -401,7 +426,7 @@ class BinaryEncryptor:
             for i in range(4):
                 state.append(self.seed_to_numbers(self.make_seed(seed[i*4:i*4+4])))
             check = True
-        elif(init_flag == "down"):
+        elif init_flag == "down":
             state = state_in
             check = True
         if check:

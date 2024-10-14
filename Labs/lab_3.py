@@ -1,3 +1,5 @@
+from Labs.lab_2 import *
+
 # Вариант - SP-сеть
 # 1. Побитовый xor для двух одинаковых блоков + функция раундовых ключей как в лаб 2. Тесты.
 # 2. Блоки перестановки: P-блок для SP-сети с доп. условиями из задания к лабораторной
@@ -6,7 +8,24 @@
 # 5. Составить набор тестов и протестировать диффузию и запутанность. Сделать небольшие выводы.
 # По мере выполнения пунктов задания соответствующие пункты выше, после тестирования, удалять
 # Использовать методы из второй лабораторной, во временном классе ниже писать только новые необходимые методы
+# После работы нужно выдернуть класс второй лабораторной и сделать полноценный класс
 
 class Lab3TempClass:
-    def __init__(self):
-        pass
+    def __init__(self, encryptor: BinaryEncryptor):
+        self.encryptor = encryptor
+
+    @staticmethod
+    def make_lcg_set():
+        return [[723482, 8677, 983609], [252564, 9109, 961193], [357630, 8971, 948209]]
+
+    def produce_round_keys(self, key_in, num_in):
+        _iter, tmp, out = [], [], []
+        set = self.make_lcg_set()
+
+        tmp = self.encryptor.wrap_CHCLCG_next('up', -1, key_in, set)
+        out.append(tmp[0])
+        if num_in > 1:
+            for i in range(1, num_in):
+                tmp = self.encryptor.wrap_CHCLCG_next('down', tmp[1], -1, set)
+                out.append(tmp[0])
+        return out

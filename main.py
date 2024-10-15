@@ -20,3 +20,22 @@ print('\n[Генерация раундовых ключей]')
 key = 'ПОЛИМАТ ТЕХНОБОГ'
 print(len(key))
 print(lab.produce_round_keys(key, 5))
+
+print('\n[Магические квадраты]')
+print(type(lab.get_magic_square(1)))
+print(f'''{lab.get_magic_square(1)}\n{lab.get_magic_square(2)}\n{lab.get_magic_square(3)}''')
+_in = "АБВГДЕЖЗИЙКЛМНОП"
+print(f'''
+{lab.frw_magic_square(_in, lab.get_magic_square(1))}
+{lab.frw_magic_square(_in, lab.get_magic_square(2))}
+{lab.frw_magic_square(_in, lab.get_magic_square(3))}''')
+print(f'''
+{lab.inv_magic_square(lab.frw_magic_square(_in, lab.get_magic_square(1)), lab.get_magic_square(1))}
+{lab.inv_magic_square(lab.frw_magic_square(_in, lab.get_magic_square(2)), lab.get_magic_square(2))}
+{lab.inv_magic_square(lab.frw_magic_square(_in, lab.get_magic_square(3)), lab.get_magic_square(3))}''')
+
+print('\n[Двоичные смещения и преобразования]')
+_in = "ЗОЛОТАЯ СЕРЕДИНА"
+print(encoder.text_to_byte_string(_in))
+print(encoder.byte_string_to_text(encoder.text_to_byte_string(_in)))
+# Дальше написать binary shift

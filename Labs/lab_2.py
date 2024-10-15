@@ -54,6 +54,15 @@ class BinaryEncryptor:
             arr_return.append(self.data_alphabet[i])
         return arr_return
 
+    def text_to_byte_string(self, text: str):
+        return ''.join(self.text2array(text))
+
+    def byte_string_to_text(self, string: str):
+        out = ''
+        for i in range(4):
+            out += (self.array2text(self.byte_to_byte_array(string[i*20:i * 20 + 20])))
+        return out
+
     def array2text(self, array):
         """
         Декодирует массив индексов алфавита в символы алфавита
@@ -162,7 +171,6 @@ class BinaryEncryptor:
                 out += self.xor_letters(block_a[i], block_b[i])
         return out
 
-
     def block_to_number(self, block_in: str):
         """
         Кодирует блок из 4 символов в численное значение по двоичному представлению
@@ -191,6 +199,7 @@ class BinaryEncryptor:
         for i in range(4):
             out += self.array2text([bin[i*5:i*5+5]])
         return out
+
     # endregion
 
     # region AlphabetEncoder

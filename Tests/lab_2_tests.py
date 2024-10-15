@@ -116,8 +116,7 @@ print("\n[LCG-ЦЕЗАРЬ]")
 
 outceas = []
 intern = []
-# a, b = shift.wrap_CHCLCG_next("up", -1, seed1, set) # О КАКОМ SEED ИДЕТ РЕЧЬ, ЧТО ЭТО
-a, b = shift.wrap_CHCLCG_next("up", -1, "АБВГДЕЖЗИЙКЛМНОП", set)
+a, b = shift.wrap_CHCLCG_next("up", -1, "ААААББББВВВВГГГГ", set)
 outceas.append(a)
 intern.append(b)
 for i in range(1, 9):
@@ -126,6 +125,21 @@ for i in range(1, 9):
     intern.append(b)
 print(outceas)
 print(intern)
+
+print("\n[LCG-ЦЕЗАРЬ Модифицированный]")
+
+outceas = []
+intern = []
+a, b = shift.wrap_CHCLCGM_next("up", -1, "ААААББББВВВВГГГГ", set)
+outceas.append(a)
+intern.append(b)
+for i in range(1, 9):
+    a, b = shift.wrap_CHCLCGM_next("down", intern[i-1], -1, set)
+    outceas.append(a)
+    intern.append(b)
+print(outceas)
+print(intern)
+
 
 
 print("\n[CHECK-SEED]")

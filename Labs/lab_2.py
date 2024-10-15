@@ -442,6 +442,35 @@ class BinaryEncryptor:
             out = [stream, state]
         return out
 
+    def wrap_CHCLCGM_next(self, init_flag, state_in, seedin, set):
+        out = ""
+        stream = ""
+        check = False
+        state = []
+        if init_flag == "up":
+            seed = self.check_seed(seedin)
+            for i in range(4):
+                state.append(self.seed_to_numbers(self.make_seed(seed[i*4:i*4+4])))
+                if i > 0:
+                    for q in range(0, i+1):
+                        state[i] = self.HCLGG(state[i], set)[1]
+            check = True
+        elif init_flag == "down":
+            state = state_in
+            check = True
+        if check:
+            for j in range(4):
+                tmp = 0
+                sign = 1
+                for i in range(4):
+                    T = self.HCLGG(state[i], set)
+                    state[i] = T[1]
+                    tmp = (1048576 + sign*T[0]+tmp) % 1048576
+                    sign = -sign
+                stream = stream + self.number_to_block(tmp)
+            out = [stream, state]
+        return out
+
     @staticmethod
     def count_bits(num: int):
         """

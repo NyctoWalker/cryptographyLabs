@@ -30,6 +30,7 @@ class Lab3TempClass:
                 out.append(tmp[0])
         return out
 
+
     @staticmethod
     def get_magic_square(num: int):
         match num:
@@ -69,3 +70,70 @@ class Lab3TempClass:
             for j in range(4):
                 tmp[msqr_in[i][j] - 1] = d[4*i+j]
         return ''.join(tmp)
+
+    def fwd_MS(self, block, matrix):
+        d = block
+        m = matrix
+        out = ""
+        for i in range(4):
+            for j in range(4):
+                out = out + d[m[i][j]-1]
+        return out
+
+    def inv_MS(self, block, matrix):
+        d = self.encryptor.text2array(block)
+        m = matrix
+        tmp = [0]*16
+        for i in range(4):
+            for j in range(4):
+                tmp[m[i][j] - 1] = d[4*i+j]
+        return self.encryptor.array2text(tmp)
+
+    def fwd_P_round(self, block, r):
+        M = [[[16, 3, 2, 13], [5, 10, 11, 8], [9, 6, 7, 12], [4, 15, 14, 1]], [[7, 14, 4, 9], [12, 1, 15, 6], [13, 8, 10, 3], [2, 11, 5, 16]],
+             [[4, 14, 15, 1], [9, 7, 6, 12], [5, 11, 10, 8], [16, 2, 3, 13]]]
+        r = r % 3
+        j = 4*(r%4)+2
+        tmp = self.fwd_MS(block, M[r])
+        T = self.encryptor.bin_shift(self.encryptor.LB2B(tmp), j)
+        return self.encryptor.BL2B(T)
+
+    def inv_P_round(self, block, r):
+        M = [[[16, 3, 2, 13], [5, 10, 11, 8], [9, 6, 7, 12], [4, 15, 14, 1]], [[7, 14, 4, 9], [12, 1, 15, 6], [13, 8, 10, 3], [2, 11, 5, 16]],
+             [[4, 14, 15, 1], [9, 7, 6, 12], [5, 11, 10, 8], [16, 2, 3, 13]]]
+        r = r % 3
+        j = -(4*(r%4)+2)
+        T = self.encryptor.bin_shift(self.encryptor.LB2B(block), j)
+        return self.inv_MS(self.encryptor.BL2B(T), M[r])
+
+    def fwd_SP_round(self, block, key, r):
+        inter = ""
+        for i in range(4):
+            T = block[i*4:i*4+4]
+            inter = inter + self.encryptor.s_block_encode_modified(T, key, i*4)
+        tmp = self.fwd_P_round(inter, r)
+        return self.encryptor.xor_block(tmp, key)
+
+    def inv_SP_round(self, block, key, r):
+        out = ""
+        tmp = self.encryptor.xor_block(block, key)
+        inter = self.inv_P_round(tmp, r)
+        for i in range(4):
+            T = inter[i*4:i*4+4]
+            out = out + self.encryptor.s_block_decode_modified(T, key, i*4)
+        return out
+
+    def fwd_SPNet(self, block, key, r):
+        key_set = self.produce_round_keys(key, r)
+        block = block
+        for i in range(r):
+            block = self.fwd_SP_round(block, key_set[i], i)
+        return block
+
+    def inv_SPNet(self, block, key, r):
+        key_set = self.produce_round_keys(key, r)
+        block = block
+        for i in range(r-1, -1, -1):
+            block = self.inv_SP_round(block, key_set[i], i)
+        return block
+

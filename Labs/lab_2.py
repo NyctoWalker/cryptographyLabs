@@ -200,6 +200,43 @@ class BinaryEncryptor:
             out += self.array2text([bin[i*5:i*5+5]])
         return out
 
+    def bin_shift(self, array, shift):
+        s = len(array)
+        b = shift % s
+        out = []
+        if b > 0:
+            for i in range(b):
+                out.append(array[s-b+i])
+            for i in range(b, s):
+                out.append(array[i-b])
+        else:
+            for i in range(s+b):
+                out.append(array[i-b])
+            for i in range(s+b, s):
+                out.append(array[i-s-b])
+        return out
+
+    def LB2B(self, block):
+        out = [""]*80
+        for q in range(4):
+            t = block[4*q:4*q+4]
+            tmp = self.to_byte(self.block_to_number(t))
+            tmp = "0" * (20 - len(tmp)) + tmp
+            for i in range(20):
+                p = i + q * 20
+                out[p] = tmp[i]
+        return out
+
+    def BL2B(self, block):
+        out = ""
+        for q in range(4):
+            tmp = ""
+            for i in range(20):
+                tmp = tmp + block[i+q*20]
+            t = self.number_to_block(self.from_byte(tmp))
+            out = out+t
+        return out
+
     # endregion
 
     # region AlphabetEncoder
@@ -302,6 +339,28 @@ class BinaryEncryptor:
             ret += self.add_letters(block_text[i], t_k)
         return ret
 
+    def s_block_decode(self, encoded_block_text, key, initial_shift):
+        """
+        Расшифровывает s-блок размером 4 символа
+
+        :param data_alphabet: Алфавит
+        :param encoded_block_text: Шифротекст
+        :param key: Ключ
+        :param initial_shift: Изначальное смещение, второй ключ
+        :return: Расшифрованный текст
+        """
+        if len(encoded_block_text) != 4:
+            return "Ошибка: длина входного блока должна быть равна 4"
+        else:
+            ret = ""
+            k = len(key)
+            t_k = self.get_letter_by_id('00000')
+            for i in range(4):
+                q = (initial_shift + i) % k
+                t_k = self.add_letters(t_k, key[q])
+                ret += self.sub_letters(encoded_block_text[i], t_k)
+            return ret
+
     def fwd_improve_block(self, block, key, initial_shift):
         """
         Улучшенный шифр Цезаря для произвольного блока текста
@@ -325,12 +384,31 @@ class BinaryEncryptor:
             b[j] = self.to_byte((self.from_byte(b[j]) + self.from_byte(b[l])) % len(self.data_alphabet))
         return self.array2text(b)
 
+    def inv_improve_block(self, block, key, initial_shift):
+        t = key
+        while initial_shift > len(t) - 4:
+            t = t*2
+        key = t[initial_shift:initial_shift+4]
+        k = self.text2array(key)
+        b = self.text2array(block)
+        q = (self.from_byte(k[0]) + self.from_byte(k[1]) + self.from_byte(k[2]) + self.from_byte(k[3])) % 4
+        for i in range(2, -1, -1):
+            j = (q+i+1) % 4
+            l = (q+i) % 4
+            b[j] = self.to_byte((self.from_byte(b[j]) - self.from_byte(b[l]) + len(self.data_alphabet)) % len(self.data_alphabet))
+        return self.array2text(b)
+
+
     def s_block_encode_modified(self, block, key, initial_shift):
         """
         Кодирует блок из 4 символов улучшенным шифром Цезаря
         """
         tmp = self.s_block_encode(block, key, initial_shift)
         return self.fwd_improve_block(tmp, key, initial_shift)
+
+    def s_block_decode_modified(self, block, key, initial_shift):
+        tmp = self.inv_improve_block(block, key, initial_shift)
+        return self.s_block_decode(tmp, key, initial_shift)
 
     def oneside_caesar(self, block: str, const, n):
         """

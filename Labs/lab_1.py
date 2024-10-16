@@ -260,5 +260,5 @@ class Encryptor:
         return self.fwd_improve_block(tmp, key, initial_shift)
 
     def s_block_decode_modified(self, block, key, initial_shift):
-        tmp = self.s_block_decode(block, key, initial_shift)
-        return self.inv_improve_block(tmp, key, initial_shift)
+        tmp = self.inv_improve_block(block, key, initial_shift)
+        return self.s_block_decode(tmp, key, initial_shift)

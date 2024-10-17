@@ -118,12 +118,25 @@ class BinaryEncryptor:
         """
         Конвертирует число в битовую строку
         """
-        coded_symbol = ""
+        coded_symbol: str = ""
         n = num
         while n > 0:
             coded_symbol = str(n % 2) + coded_symbol
             n = n // 2
-        return '0' * (self.dimension - len(coded_symbol)) + coded_symbol
+        return '0'*(self.dimension - len(coded_symbol)) + coded_symbol
+
+    def to_true_byte(self, num: int):
+        """
+        Конвертирует число в битовую строку
+        """
+        _bytes = self.count_bits(num) // 2
+        coded_symbol: str = ""
+        n = num
+        while n > 0:
+            coded_symbol = str(n % 2) + coded_symbol
+            n = n // 2
+        # print('0'*(self.dimension*_bytes - len(coded_symbol)) + coded_symbol, num, _bytes, coded_symbol, len(coded_symbol))
+        return '0'*(self.dimension*_bytes - len(coded_symbol)) + coded_symbol
 
     @staticmethod
     def from_byte(symbol: str):
@@ -200,20 +213,21 @@ class BinaryEncryptor:
             out += self.array2text([bin[i*5:i*5+5]])
         return out
 
-    def bin_shift(self, array, shift):
+    @staticmethod
+    def bin_shift(array, shift):
         s = len(array)
         b = shift % s
-        out = []
+        out = ''
         if b > 0:
             for i in range(b):
-                out.append(array[s-b+i])
+                out += (array[s-b+i])
             for i in range(b, s):
-                out.append(array[i-b])
+                out += (array[i-b])
         else:
             for i in range(s+b):
-                out.append(array[i-b])
+                out += (array[i-b])
             for i in range(s+b, s):
-                out.append(array[i-s-b])
+                out += (array[i-s-b])
         return out
 
     def LB2B(self, block):

@@ -10,7 +10,7 @@ from Labs.lab_2 import *
 # После работы нужно выдернуть класс второй лабораторной и сделать полноценный класс
 
 
-class Lab3TempClass:
+class SPNet:
     def __init__(self, encryptor: BinaryEncryptor):
         self.encryptor = encryptor
 
@@ -29,7 +29,6 @@ class Lab3TempClass:
                 tmp = self.encryptor.wrap_CHCLCGM_next('down', tmp[1], -1, set)
                 out.append(tmp[0])
         return out
-
 
     @staticmethod
     def get_magic_square(num: int):
@@ -89,20 +88,26 @@ class Lab3TempClass:
                 tmp[m[i][j] - 1] = d[4*i+j]
         return self.encryptor.array2text(tmp)
 
-    def fwd_P_round(self, block, r):
-        M = [[[16, 3, 2, 13], [5, 10, 11, 8], [9, 6, 7, 12], [4, 15, 14, 1]], [[7, 14, 4, 9], [12, 1, 15, 6], [13, 8, 10, 3], [2, 11, 5, 16]],
-             [[4, 14, 15, 1], [9, 7, 6, 12], [5, 11, 10, 8], [16, 2, 3, 13]]]
-        r = r % 3
-        j = 4*(r%4)+2
+    def fwd_P_round(self, block, r_in):
+        M = [
+             self.get_magic_square(1),
+             self.get_magic_square(2),
+             self.get_magic_square(3)
+            ]
+        r = r_in % 3
+        j = 4*(r_in % 4)+2
         tmp = self.fwd_MS(block, M[r])
         T = self.encryptor.bin_shift(self.encryptor.LB2B(tmp), j)
         return self.encryptor.BL2B(T)
 
-    def inv_P_round(self, block, r):
-        M = [[[16, 3, 2, 13], [5, 10, 11, 8], [9, 6, 7, 12], [4, 15, 14, 1]], [[7, 14, 4, 9], [12, 1, 15, 6], [13, 8, 10, 3], [2, 11, 5, 16]],
-             [[4, 14, 15, 1], [9, 7, 6, 12], [5, 11, 10, 8], [16, 2, 3, 13]]]
-        r = r % 3
-        j = -(4*(r%4)+2)
+    def inv_P_round(self, block, r_in):
+        M = [
+             self.get_magic_square(1),
+             self.get_magic_square(2),
+             self.get_magic_square(3)
+            ]
+        r = r_in % 3
+        j = -(4*(r_in % 4)+2)
         T = self.encryptor.bin_shift(self.encryptor.LB2B(block), j)
         return self.inv_MS(self.encryptor.BL2B(T), M[r])
 

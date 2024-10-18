@@ -116,7 +116,7 @@ print("\n[LCG-ЦЕЗАРЬ]")
 
 outceas = []
 intern = []
-a, b = shift.wrap_CHCLCG_next("up", -1, "ААААББББВВВВГГГГ", set)
+a, b = shift.wrap_CHCLCG_next("up", -1, "АБВГДЕЖЗИЙКЛМНОП", set)
 outceas.append(a)
 intern.append(b)
 for i in range(1, 9):

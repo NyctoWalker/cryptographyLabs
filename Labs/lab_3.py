@@ -4,8 +4,12 @@ from Labs.lab_2 import *
 
 
 class SPNet:
+
     def __init__(self, encryptor: BinaryEncryptor):
         self.encryptor = encryptor
+
+    def get_encryptor(self):
+        return self.encryptor
 
     @staticmethod
     def make_lcg_set():

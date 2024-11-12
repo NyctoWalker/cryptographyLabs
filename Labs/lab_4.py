@@ -44,13 +44,14 @@ class Lab4Temp:
     def msg2bin(self, msg_in):
         _m = len(msg_in)
         i, f = 0, 0
-        tmp = [' '*_m]
+        tmp = [' ']*_m*5
         while self.is_sym(msg_in[i]):
-            c = self.encoder.block_to_number(msg_in[i])
+            c = self.encoder.from_byte(self.encoder.text_to_byte_string(msg_in[i]))
             for j in range(5):
-                tmp[i*5 + 4 - j] = '0' if c % 2 == 0 else '1'
+                p = i*5 + 4 - j
+                tmp[p] = '0' if c % 2 == 0 else '1'
                 c = c // 2
-            if i == _m-1:
+            if i == _m - 1:
                 f=1
                 break
             else:
@@ -58,7 +59,8 @@ class Lab4Temp:
         if f == 0:
             for k in range(i, _m):
                 tmp[4*i+k] = self.sym2bin(msg_in[k])
-        return self.encoder.array2text(tmp)
+        tmp = [x for x in tmp if x != ' ']
+        return tmp
 
     def bin2msg(self, bin_in):
         _B = len(bin_in)
@@ -69,10 +71,11 @@ class Lab4Temp:
             t = 0
             for j in range(5):
                 t = 2*t + int(bin_in[i*5+j])
-            out += self.encoder.number_to_block(t)
+            num = self.encoder.to_byte(t)
+            out += self.encoder.get_letter_by_id(num)
         if q > 0:
             for k in range(1, q+1):
-                out += self.encoder.number_to_block(bin_in[b*5+k-1])
+                out += str(bin_in[b*5+k-1])
         return out
     # endregion
 

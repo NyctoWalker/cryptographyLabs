@@ -36,7 +36,7 @@ class Lab4Temp:
         elif s_in == '0':
             return 0
         else:
-            return self.encoder.to_byte(self.encoder.block_to_number(s_in))  # Под замену, непонятно что в примере подразумевалось
+            return self.encoder.text2array(s_in)  # Под замену, непонятно что в примере подразумевалось
 
     def is_sym(self, s_in: str):
         return s_in in self.encoder.data_alphabet
@@ -67,6 +67,10 @@ class Lab4Temp:
         b = _B // 5
         q = _B % 5
         out = ""
+        if(bin_in.count('') > 0):
+            p = bin_in.count('')
+            k = bin_in.index('')
+            print("")
         for i in range(b):
             t = 0
             for j in range(5):
@@ -77,12 +81,26 @@ class Lab4Temp:
             for k in range(1, q+1):
                 out += str(bin_in[b*5+k-1])
         return out
+
+    @staticmethod
+    def submatrix(M, rowl, rowr, colu, cold):
+        mattoreturn = []
+        for i in range(rowr - rowl + 1):
+            q = M[rowl + i]
+            mattoreturn.append(M[rowl + i][0:cold - colu + 1])
+        return mattoreturn
+
+    @staticmethod
+    def getcolmatr(M, col):
+        mattoreturn = []
+        for i in range(len(M)):
+            mattoreturn.append(M[i][col])
+        return mattoreturn
     # endregion
 
     # region Подложки
 
-    @staticmethod
-    def check_padding(bin_msg_in):
+    def check_padding(self, bin_msg_in):
         _m = len(bin_msg_in)
         blocks_num = _m // 80
         remainder = _m % 80
@@ -91,18 +109,17 @@ class Lab4Temp:
         numblocks = 0
         if remainder == 0:
             # Проверка: если удалить filler, подсветка синтаксиса скажет что такой переменной нет ниже
-            filler = [0, 0, 0]  # Заменить на операции с матрицами если поймём что это такое.
-            tb = filler
-            ender = filler
-            if ender == [0, 0, 1]:
-                NB = filler
-                PL = filler
+            tb = self.submatrix(bin_msg_in, _m-20, _m-1, 0, 0)
+            ender = self.submatrix(tb, 17, 19, 0, 0)
+            if ender == ['0', '0', '1']:
+                NB = self.submatrix(tb, 7, 16, 0, 0)
+                PL = self.submatrix(tb, 0, 6, 0, 0)
                 for i in range(7):
-                    pad_length = 2*pad_length + PL[i]
-                for i in range(10):
-                    numblocks = 2*numblocks + NB[i]
+                    pad_length = 2*pad_length + int(PL[i])
+                for i in range(9):
+                    numblocks = 2*numblocks + int(NB[i])
                 if numblocks == blocks_num and (103 > pad_length >= 23):
-                    tb = filler
+                    tb = self.submatrix(bin_msg_in, _m-pad_length, _m-21, 0, 0)
                     starter = tb[0]
                     if starter == 1:
                         f = 1
@@ -125,15 +142,18 @@ class Lab4Temp:
             r = 160 - rem_in
         pad = "1"
 
-        for i in range(1, r-21):
+        for i in range(1, r-20):
             pad += "0"
 
         rt = r
+        pad = list(pad)
+        pad += ['']*(r-len(pad))
         for i in range(6, -1, -1):
-            pad[r-20+i] = rt % 2  # Тут может быть проблемно, так как pad то строка/лист, динамически ничего не добавляется как в маткаде
+            l = r-20+i
+            pad[r-20+i] = str(rt % 2)  # Тут может быть проблемно, так как pad то строка/лист, динамически ничего не добавляется как в маткаде
             rt = rt // 2
         for i in range(9, -1, -1):
-            pad[r-12+i] = b % 2  # налогично прошлому циклу, по индексу мы не обратимся
+            pad[r-13+i] = str(b % 2)  # налогично прошлому циклу, по индексу мы не обратимся
             b = b // 2
         pad[r-3], pad[r-2] = "0", "0"
         pad[r-1] = "1"
@@ -150,7 +170,7 @@ class Lab4Temp:
         if f == 1:
             pad = self.produce_padding(rem, blocks)
             for i in range(len(pad)):
-                bins[_m + i] = pad[i]  # Тут могут быть проблемы
+                bins.append(pad[i]) # Тут могут быть проблемы
         return self.bin2msg(bins)
 
     def unpad_message(self, msg_in):
@@ -170,14 +190,16 @@ class Lab4Temp:
     # region Пакеты
 
     def prepare_packet(self, data_in, iv_in, msg_in):
-        iv = self.encoder.add_block('                ', iv_in)  # Предполагаю что там 16 пробелов
+        iv = iv_in+'                ' # Предполагаю что там 16 пробелов
         msg = self.pad_message(msg_in)
         _l = len(self.msg2bin(msg))
         a = ""
 
         # Метод не дописан, нужно раскомментировать а
         for i in range(5):
-            # a = self.num2sym + a  # Не уверен, что именно за num2sym и как в concat влияет порядок
+            r = self.encoder.to_byte(_l % 32)
+            m = self.encoder.get_letter_by_id(r)
+            a = m + a  # Не уверен, что именно за num2sym и как в concat влияет порядок
             _l //= 32
         data_in[4] = a
         return [data_in, iv, msg, ""]
@@ -227,8 +249,8 @@ class Lab4Temp:
         return [[_type, _sender, _receiver, _session, _length], _iv, message, mac]
 
     # Возможно, не нужно реализовывать и это уже есть
-    def textor(self):
-        pass
+    def textor(self, A1, A2):
+        return self.encoder.xor_block(A1, A2)
 
     # endregion
 

@@ -15,6 +15,8 @@ tests = [
     'ГНОЛЛЫ ПИЛИЛИ ПЫЛЕСОС ЛОСОСЕМ0011',
     'ГНОЛЛЫ ПИЛИЛИ ПЫЛЕСОС ЛОСОСЕМ1110011011011',
 ]
+print(encryptor.sym2bin("А"))
+
 print('(msg2bin)')
 print("ГНОЛЛЫ ПИЛИЛИ ПЫЛЕСОС ЛОСОСЕМ: " , len(encryptor.msg2bin(tests[0])), encryptor.msg2bin(tests[0]))
 print("ГНОЛЛЫ ПИЛИЛИ ПЫЛЕСОС ЛОСОСЕМ0011: " , len(encryptor.msg2bin(tests[1])), encryptor.msg2bin(tests[1]))
@@ -37,20 +39,64 @@ print('\n[Подложка]')
 inputtext = open("inp.txt").read().replace('_', ' ')
 inputs_array = inputtext.split("\n")
 assocdata_array = open("ad.txt").readline()
+print(assocdata_array)
+inputs_arraylen = []
 for i in range(len(inputs_array)):
-    print(len(encryptor.msg2bin(inputs_array[i])))
+    inputs_arraylen.append(len(encryptor.msg2bin(inputs_array[i])))
+print("inp.txt: ", inputs_arraylen)
 tests = [
-    "ВА", "АЛИСА  А", "БОБ    А", "КОТОПОЕЗД",
-    "ВБ", "АЛИСА АЖ", "БОБ   ОЧ", "ЕГИПТЯНИН",
-    "В_", "АЛИСА ЯЗ", "БОБ   ЬЬ", "ЩЕГОЛЯНИЕ",
-    "ВБ", "БОБ   ЬЬ", "АЛИСА ЯЗ", "ЭКЛАМПСИЯ",
-    "ВБ", "БОБ   ЬЬ", "АЛИСА ЯЗ", "ЕГИПТЯНИН",
-    "ВБ", "АЛИСА ЯЗ", "БОБ   ЬЬ", "ЕГИПТЯНИН",
+    ["ВА", "АЛИСА  А", "БОБ    А", "КОТОПОЕЗД"],
+    ["ВБ", "АЛИСА АЖ", "БОБ   ОЧ", "ЕГИПТЯНИН"],
+    ["В ", "АЛИСА ЯЗ", "БОБ   ЬЬ", "ЩЕГОЛЯНИЕ"],
+    ["ВБ", "БОБ   ЬЬ", "АЛИСА ЯЗ", "ЭКЛАМПСИЯ"],
+    ["ВБ", "БОБ   ЬЬ", "АЛИСА ЯЗ", "ЕГИПТЯНИН"],
+    ["ВБ", "АЛИСА ЯЗ", "БОБ   ЬЬ", "ЕГИПТЯНИН"],
 ]
 TST1 = encryptor.pad_message(inputs_array[0])
+print("TST1 check padding: ", encryptor.check_padding(encryptor.msg2bin(TST1)))
+print("TST1 unpad message: ", len(encryptor.msg2bin(encryptor.unpad_message(TST1))))
+TST2 = encryptor.pad_message(inputs_array[1])
+msTST2 = encryptor.msg2bin(TST2)
+print("TST2 check padding: ", encryptor.check_padding(msTST2))
+print("TST2 unpad message: ", len(encryptor.msg2bin(encryptor.unpad_message(TST2))))
+TST3 = encryptor.pad_message(inputs_array[2])
+print("TST3 check padding: ", encryptor.check_padding(encryptor.msg2bin(TST3)))
+print("TST3 unpad message: ", len(encryptor.msg2bin(encryptor.unpad_message(TST3))))
+TST4 = encryptor.pad_message(inputs_array[3])
+print("TST4 check padding: ", encryptor.check_padding(encryptor.msg2bin(TST4)))
+print("TST4 unpad message: ", len(encryptor.msg2bin(encryptor.unpad_message(TST4))))
 
 print('\n[Подготовка пакетов + ксор блоков из 80 бит]')
 # prepare_packet, validate_packet, transmit, receive, textor(попробовать уже сделанный ксор)
+
+print(encryptor.getcolmatr(tests, 0))
+
+XTST = encryptor.prepare_packet(encryptor.getcolmatr(tests, 0), "КОЛЕСО", inputs_array[0])
+print(XTST[1])
+print(encryptor.receive(encryptor.transmit(XTST)))
+
+print('\n[CTR]')
+# textxor
+
+A1 = "ГОЛОВКА КРУЖИТСЯ"
+A2 = "МЫШКА БЫЛА ЛИХОЙ"
+B1 = "СИНЕВАТАЯ БОРОДА"
+B2 = "ЗЕЛЕНЫЙ КОТОЗМИЙ"
+
+C1 = encryptor.textor(A1, A2)
+C2 = encryptor.textor(A1, B2)
+print("textor["+A1+","+A2+"] = "+ C1)
+print("textor["+A1+","+B2+"] = "+ C2)
+
+C11 = encryptor.textor(C1, A1)
+C12 = encryptor.textor(C1, A2)
+print("textor["+C1+","+A1+"] = "+ C11)
+print("textor["+C1+","+A2+"] = "+ C12)
+
+C21 = encryptor.textor(C2, A1)
+C22 = encryptor.textor(C2, A2)
+print("textor["+C2+","+A1+"] = "+ C21)
+print("textor["+C2+","+A2+"] = "+ C22)
 
 print('\n[CTR]')
 # enc_CTR

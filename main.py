@@ -100,6 +100,16 @@ print("textor["+C2+","+A2+"] = "+ C22)
 
 print('\n[CTR]')
 # enc_CTR
+TST = inputs_array[0]
+print("strlen TST = "+ str(len(TST)) + " /16 = " + str(len(TST)/16))
+IV1 =  "АЛИСА УМЕЕТ ПЕТЬ"
+IV2 =  "БОБ НЕМНОГО ПЬЯН"
+IV3 =  "БОБ НЕМНОГО УНЫЛ"
+
+keyset = generator.produce_round_keys("СЕАНСОВЫЙ КЛЮЧИК", 8)
+print(keyset)
+#F_Test1m = encryptor.enc_CTR(TST, IV1, keyset[0], 6)
+
 
 print('\n[MAC CBC]')
 # mac_CBC

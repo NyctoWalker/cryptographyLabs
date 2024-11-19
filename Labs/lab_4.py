@@ -269,7 +269,7 @@ class Lab4Temp:
             keystream = self.encoder.s_block_encode_modified(iv, key_in, r_in)
             inp = msg_in[i*16:i*16 + 16]
             # textxor
-            # out += textxor(inp, keystream)
+            out += self.textor(inp, keystream)
             ctr += 1
         return out
 

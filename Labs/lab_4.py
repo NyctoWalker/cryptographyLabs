@@ -22,7 +22,7 @@ import sys
 
 class Lab4Temp:
     def __init__(self, sp_net: SPNet):
-        self.sp_net = SPNet
+        self.sp_net = sp_net
         self.encoder = sp_net.get_encryptor()
 
     #region Двоичные_представления
@@ -252,6 +252,20 @@ class Lab4Temp:
     def textor(self, A1, A2):
         return self.encoder.xor_block(A1, A2)
 
+    @staticmethod
+    def combine(strset_in):
+        out = ""
+        for i in strset_in:
+            out+=i
+        return out
+
+    def blockxor(self, A_in, B_in):
+        A = self.encoder.text_to_byte_string(A_in)
+        B = self.encoder.text_to_byte_string(B_in)
+        C = ""
+        for i in range(20):
+            C += str((int(A[i]) + int(B[i])) % 2)
+        return self.encoder.number_to_block(self.encoder.from_byte(C))
     # endregion
 
     # region CCM
@@ -266,9 +280,8 @@ class Lab4Temp:
             iv_ender = self.encoder.number_to_block(ctr)
             iv = iv_starter + iv_ender
             # Возможно тут какой-то другой метод
-            keystream = self.encoder.s_block_encode_modified(iv, key_in, r_in)
+            keystream = self.sp_net.fwd_SPNet(iv, key_in[7], r_in)
             inp = msg_in[i*16:i*16 + 16]
-            # textxor
             out += self.textor(inp, keystream)
             ctr += 1
         return out
@@ -279,22 +292,18 @@ class Lab4Temp:
         out = ""
         for i in range(m):
             inp = msg_in[i*16:i*16 + 16]
-            # textxor
-            # tmp = textxor(iv_in, imp)
-            # Возможно тут какой-то другой метод + tmp
-            # iv_in = self.encoder.s_block_encode_modified(tmp, key_in, r_in)
+            tmp = self.textor(iv_in, inp)
+            iv_in = self.sp_net.fwd_SPNet(tmp, key_in[7], r_in)
             out += iv_in
-        return iv_in  # Не out?
+        return iv_in
 
-    def CCM_frw(self, packet_in, key_in, only_mac):
+    def CCM_frw(self, packet_in, key_in, only_mac, r_in):
         assdata_in, iv_in, msg_in, tmp = packet_in
-        data = ""  # Изменить тип в зависимости от типа данных в assdata_in
-        for ad in assdata_in:
-            data += ad
+        data = self.combine(assdata_in)
         _m = len(msg_in)
-        mac = self.mac_CBC(data+msg_in, iv_in, key_in)
+        mac = self.mac_CBC(data+msg_in, iv_in, key_in, r_in)
         if only_mac == 0:
-            msg = self.enc_CTR(msg_in+mac, iv_in, key_in)
+            msg = self.enc_CTR(msg_in+mac, iv_in, key_in, r_in)
             _msg = msg[0:_m]
             _mac = msg[_m:_m + 16]
         else:
@@ -302,22 +311,19 @@ class Lab4Temp:
             _mac = mac
         return [assdata_in, iv_in, _msg, _mac]
 
-    def CCM_inv(self, packet_in, key_in, only_mac):
+    def CCM_inv(self, packet_in, key_in, only_mac, r_in):
         assdata_in, iv_in, msg_in, mac_in = packet_in
-        data = ""  # Изменить тип в зависимости от типа данных в assdata_in
-        for ad in assdata_in:
-            data += ad
+        data = self.combine(assdata_in)
         _m = len(msg_in)
         if only_mac == 0:
-            msg = self.enc_CTR(msg_in+mac_in, iv_in, key_in)
+            msg = self.enc_CTR(msg_in+mac_in, iv_in, key_in, r_in)
             _msg = msg[0:_m]
             _mac = msg[_m:_m + 16]
         else:
             _msg = msg_in
             _mac = mac_in
-        mac = self.mac_CBC(data + _msg, iv_in, key_in)
-        # textxor
-        # _mac = textxor(_mac, mac)
+        mac = self.mac_CBC(data + _msg, iv_in, key_in, r_in)
+        _mac = self.textor(_mac, mac)
         return [assdata_in, iv_in, _msg, _mac]
 
     # endregion

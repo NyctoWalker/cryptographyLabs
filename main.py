@@ -108,11 +108,61 @@ IV3 =  "БОБ НЕМНОГО УНЫЛ"
 
 keyset = generator.produce_round_keys("СЕАНСОВЫЙ КЛЮЧИК", 8)
 print(keyset)
-#F_Test1m = encryptor.enc_CTR(TST, IV1, keyset[0], 6)
+F_Test1m = encryptor.enc_CTR(TST, IV1, keyset, 6)
+print("enc_CTR(IV1) = " + F_Test1m)
+print("len(F_Test1m) = " + str(len(F_Test1m)))
+
+I_Test1m = encryptor.enc_CTR(F_Test1m, IV1, keyset, 6)
+print("enc_CTR(I_Test1m) = " + I_Test1m)
+print("len(I_Test1m) = " + str(len(I_Test1m)))
 
 
 print('\n[MAC CBC]')
 # mac_CBC
+keyset = generator.produce_round_keys("СЕАНСОВЫЙ КЛЮЧИК", 8)
+print(keyset)
+F_Test1 = encryptor.mac_CBC(TST, IV1, keyset, 6)
+print("mac_CBC(IV1) = " + F_Test1)
+print("len(F_Test1) = " + str(len(F_Test1)))
+F_Test2 = encryptor.mac_CBC(TST, IV2, keyset, 6)
+print("mac_CBC(IV1) = " + F_Test2)
+print("len(F_Test2) = " + str(len(F_Test2)))
+F_Test3 = encryptor.mac_CBC(TST, IV3, keyset, 6)
+print("mac_CBC(IV1) = " + F_Test3)
+print("len(F_Test3) = " + str(len(F_Test3)))
+
+
 
 print('\n[CCM]')
 # CCM_frw, CCM_inv
+print("Проверка blockxor:")
+print("КОНЬ и А  Г = " + encryptor.blockxor("КОНЬ", "А  Г"))
+print("КААА и АБВГ = " + encryptor.blockxor("КААА", "АБВГ"))
+print("КОНЬ и АБВГ = " + encryptor.blockxor("КОНЬ", "АБВГ"))
+print("КОНЬ и ЛУНЬ = " + encryptor.blockxor("КОНЬ", "ЛУНЬ"))
+
+IV1 =  "АЛИСА УМЕЕТ ПЕТЬ"
+IV2 =  "БОБ НЕМНОГО ПЬЯН"
+IV3 =  "БОБ НЕМНОГО УНЫЛ"
+AD = ["ВБ", "АЛИСА АЖ","БОБ   ОЧ","ЕГИПТЯНИН","АБВГД"]
+PACKET = [AD, IV2, inputs_array[0], ""]
+keyset = generator.produce_round_keys("СЕАНСОВЫЙ КЛЮЧИК", 8)
+print(AD)
+Q_TEST1m = encryptor.CCM_frw(PACKET, keyset, 0, 8)
+print("CCM_frw(PACKET) = Q_TEST1m[3] = " + Q_TEST1m[3])
+print("CCM_frw(PACKET) = Q_TEST1m[2] = " + Q_TEST1m[2])
+
+Q_TEST1inv = encryptor.CCM_inv(Q_TEST1m, keyset, 0, 8)
+print("CCM_frw(Q_TEST1m) = Q_TEST1inv = " + Q_TEST1inv[3])
+print("CCM_frw(Q_TEST1m) = Q_TEST1inv = " + Q_TEST1inv[2])
+print()
+
+Q_TEST0m = encryptor.CCM_frw(PACKET, keyset, 1, 8)
+print("CCM_frw(PACKET) = Q_TEST0m = " + Q_TEST0m[3])
+print("CCM_frw(PACKET) = Q_TEST0m = " + Q_TEST0m[2])
+print()
+
+Q_TEST0inv = encryptor.CCM_inv(Q_TEST0m, keyset, 1, 8)
+print("CCM_frw(Q_TEST0m) = Q_TEST0inv = " + Q_TEST0inv[3])
+print("CCM_frw(Q_TEST0m) = Q_TEST0inv = " + Q_TEST0inv[2])
+print()

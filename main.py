@@ -65,6 +65,21 @@ print("TST3 unpad message: ", len(encryptor.msg2bin(encryptor.unpad_message(TST3
 TST4 = encryptor.pad_message(inputs_array[3])
 print("TST4 check padding: ", encryptor.check_padding(encryptor.msg2bin(TST4)))
 print("TST4 unpad message: ", len(encryptor.msg2bin(encryptor.unpad_message(TST4))))
+TST41 = encryptor.pad_message(TST4)
+#Тут должно быть [1, 3, 102]
+print("TST41 check padding: ", encryptor.check_padding(encryptor.msg2bin(TST41)))
+print("TST41 unpad message: ", len(encryptor.msg2bin(encryptor.unpad_message(TST41))))
+
+TST6 = inputs_array[6]
+print(inputs_array[6])
+print(encryptor.msg2bin(TST6))
+print(len(encryptor.msg2bin(TST6)))
+
+TST61 = encryptor.pad_message(TST6)
+TST62 = encryptor.msg2bin(TST61)
+print(TST62)
+print("TST41 check padding: ", encryptor.check_padding(TST62))
+print("TST41 unpad message: ", len(encryptor.msg2bin(encryptor.unpad_message(TST61))))
 
 print('\n[Подготовка пакетов + ксор блоков из 80 бит]')
 # prepare_packet, validate_packet, transmit, receive, textor(попробовать уже сделанный ксор)

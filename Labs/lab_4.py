@@ -116,7 +116,7 @@ class Lab4Temp:
                 PL = self.submatrix(tb, 0, 6, 0, 0)
                 for i in range(7):
                     pad_length = 2*pad_length + int(PL[i])
-                for i in range(9):
+                for i in range(10):
                     numblocks = 2*numblocks + int(NB[i])
                 if numblocks == blocks_num and (103 > pad_length >= 23):
                     tb = self.submatrix(bin_msg_in, _m-pad_length, _m-21, 0, 0)
@@ -127,7 +127,7 @@ class Lab4Temp:
                             tmp = tb[j]
                             if tmp == 1:
                                 f = 0
-                            break  # Вообще без понятия зачем цикл если потом в любом случае используем break
+                                break  # Вообще без понятия зачем цикл если потом в любом случае используем break
         return [f, numblocks, pad_length]
 
     @staticmethod
@@ -150,10 +150,10 @@ class Lab4Temp:
         pad += ['']*(r-len(pad))
         for i in range(6, -1, -1):
             l = r-20+i
-            pad[r-20+i] = str(rt % 2)  # Тут может быть проблемно, так как pad то строка/лист, динамически ничего не добавляется как в маткаде
+            pad[r-20+i] = str(rt % 2)
             rt = rt // 2
         for i in range(9, -1, -1):
-            pad[r-13+i] = str(b % 2)  # налогично прошлому циклу, по индексу мы не обратимся
+            pad[r-13+i] = str(b % 2)
             b = b // 2
         pad[r-3], pad[r-2] = "0", "0"
         pad[r-1] = "1"
@@ -170,7 +170,7 @@ class Lab4Temp:
         if f == 1:
             pad = self.produce_padding(rem, blocks)
             for i in range(len(pad)):
-                bins.append(pad[i]) # Тут могут быть проблемы
+                bins.append(pad[i])
         return self.bin2msg(bins)
 
     def unpad_message(self, msg_in):
@@ -280,7 +280,7 @@ class Lab4Temp:
             iv_ender = self.encoder.number_to_block(ctr)
             iv = iv_starter + iv_ender
             # Возможно тут какой-то другой метод
-            keystream = self.sp_net.fwd_SPNet(iv, key_in[7], r_in)
+            keystream = self.sp_net.fwd_SPNet2(iv, key_in, r_in)
             inp = msg_in[i*16:i*16 + 16]
             out += self.textor(inp, keystream)
             ctr += 1
@@ -293,7 +293,7 @@ class Lab4Temp:
         for i in range(m):
             inp = msg_in[i*16:i*16 + 16]
             tmp = self.textor(iv_in, inp)
-            iv_in = self.sp_net.fwd_SPNet(tmp, key_in[7], r_in)
+            iv_in = self.sp_net.fwd_SPNet2(tmp, key_in, r_in)
             out += iv_in
         return iv_in
 

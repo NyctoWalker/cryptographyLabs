@@ -139,3 +139,19 @@ class SPNet:
             block = self.inv_SP_round(block, key_set[i], i)
         return block
 
+    def fwd_SPNet2(self, block, key_set, r):
+        block = block
+        for i in range(r):
+            block = self.fwd_SP_round(block, key_set[i], i)
+        return block
+
+    def inv_SPNet2(self, block, key_set, r):
+        block = block
+        for i in range(r-1, -1, -1):
+            block = self.inv_SP_round(block, key_set[i], i)
+        return block
+
+
+
+
+

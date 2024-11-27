@@ -66,7 +66,7 @@ TST4 = encryptor.pad_message(inputs_array[3])
 print("TST4 check padding: ", encryptor.check_padding(encryptor.msg2bin(TST4)))
 print("TST4 unpad message: ", len(encryptor.msg2bin(encryptor.unpad_message(TST4))))
 TST41 = encryptor.pad_message(TST4)
-#Тут должно быть [1, 3, 102]
+# Тут должно быть [1, 3, 102]
 print("TST41 check padding: ", encryptor.check_padding(encryptor.msg2bin(TST41)))
 print("TST41 unpad message: ", len(encryptor.msg2bin(encryptor.unpad_message(TST41))))
 
@@ -90,9 +90,7 @@ XTST = encryptor.prepare_packet(encryptor.getcolmatr(tests, 0), "КОЛЕСО", 
 print(XTST[1])
 print(encryptor.receive(encryptor.transmit(XTST)))
 
-print('\n[CTR]')
-# textxor
-
+print('\n[Textor]')
 A1 = "ГОЛОВКА КРУЖИТСЯ"
 A2 = "МЫШКА БЫЛА ЛИХОЙ"
 B1 = "СИНЕВАТАЯ БОРОДА"
@@ -100,13 +98,13 @@ B2 = "ЗЕЛЕНЫЙ КОТОЗМИЙ"
 
 C1 = encryptor.textor(A1, A2)
 C2 = encryptor.textor(A1, B2)
-print("textor["+A1+","+A2+"] = "+ C1)
-print("textor["+A1+","+B2+"] = "+ C2)
+print("textor["+A1+","+A2+"] = " + C1)
+print("textor["+A1+","+B2+"] = " + C2)
 
 C11 = encryptor.textor(C1, A1)
 C12 = encryptor.textor(C1, A2)
-print("textor["+C1+","+A1+"] = "+ C11)
-print("textor["+C1+","+A2+"] = "+ C12)
+print("textor["+C1+","+A1+"] = " + C11)
+print("textor["+C1+","+A2+"] = " + C12)
 
 C21 = encryptor.textor(C2, A1)
 C22 = encryptor.textor(C2, A2)
@@ -117,9 +115,9 @@ print('\n[CTR]')
 # enc_CTR
 TST = inputs_array[0]
 print("strlen TST = "+ str(len(TST)) + " /16 = " + str(len(TST)/16))
-IV1 =  "АЛИСА УМЕЕТ ПЕТЬ"
-IV2 =  "БОБ НЕМНОГО ПЬЯН"
-IV3 =  "БОБ НЕМНОГО УНЫЛ"
+IV1 = "АЛИСА УМЕЕТ ПЕТЬ"
+IV2 = "БОБ НЕМНОГО ПЬЯН"
+IV3 = "БОБ НЕМНОГО УНЫЛ"
 
 keyset = generator.produce_round_keys("СЕАНСОВЫЙ КЛЮЧИК", 8)
 print(keyset)
@@ -156,10 +154,10 @@ print("КААА и АБВГ = " + encryptor.blockxor("КААА", "АБВГ"))
 print("КОНЬ и АБВГ = " + encryptor.blockxor("КОНЬ", "АБВГ"))
 print("КОНЬ и ЛУНЬ = " + encryptor.blockxor("КОНЬ", "ЛУНЬ"))
 
-IV1 =  "АЛИСА УМЕЕТ ПЕТЬ"
-IV2 =  "БОБ НЕМНОГО ПЬЯН"
-IV3 =  "БОБ НЕМНОГО УНЫЛ"
-AD = ["ВБ", "АЛИСА АЖ","БОБ   ОЧ","ЕГИПТЯНИН","АБВГД"]
+IV1 = "АЛИСА УМЕЕТ ПЕТЬ"
+IV2 = "БОБ НЕМНОГО ПЬЯН"
+IV3 = "БОБ НЕМНОГО УНЫЛ"
+AD = ["ВБ", "АЛИСА АЖ", "БОБ   ОЧ", "ЕГИПТЯНИН", "АБВГД"]
 PACKET = [AD, IV2, inputs_array[0], ""]
 keyset = generator.produce_round_keys("СЕАНСОВЫЙ КЛЮЧИК", 8)
 print(AD)

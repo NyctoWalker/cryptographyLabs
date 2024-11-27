@@ -25,8 +25,7 @@ class Lab4Temp:
         self.sp_net = sp_net
         self.encoder = sp_net.get_encryptor()
 
-    #region Двоичные_представления
-    # Скорее всего это написано неправильно, см. документацию по str2vec для маткада
+    # region Двоичные_представления
     def sym2bin(self, s_in: str):
         if len(s_in) != 1:
             raise ValueError(f'sym2bin: получена строка с длиной {len(s_in)} вместо символа или бита')
@@ -67,7 +66,8 @@ class Lab4Temp:
         b = _B // 5
         q = _B % 5
         out = ""
-        if(bin_in.count('') > 0):
+
+        if bin_in.count('') > 0:
             p = bin_in.count('')
             k = bin_in.index('')
             print("")
@@ -325,5 +325,64 @@ class Lab4Temp:
         mac = self.mac_CBC(data + _msg, iv_in, key_in, r_in)
         _mac = self.textor(_mac, mac)
         return [assdata_in, iv_in, _msg, _mac]
+
+    def CCM(self, ass_data, msg_array, key_in, key_rounds, nonce, type):
+        mtype, sender, receiver, transmission = ass_data
+        # [RCG, rcg_rounds], [[ciph_frw, ciph_inv], cipher_rounds], [sb_frw, sb_inv], _ = cipher_suite
+        t1 = receiver + sender
+        t2 = mtype + transmission + '      '  # 6 пробелов
+        t3 = self.encoder.add_alphabet((self.encoder.add_alphabet(t1, t2)), nonce)
+        IV0 = (t3[:8] + t3[12:16] + t3[12:16])
+        msg_counter = -1
+        keyset = self.sp_net.produce_round_keys(key_in, key_rounds)
+        out = []
+
+        if type == 'send':
+            for i in range(len(msg_array)):
+                msg_sec = mtype
+                msg_counter += 1
+                IV1 = ('        ' + self.encoder.number_to_block(msg_counter) + '    ')  # 8+4 пробелов
+                IV = self.textor(IV0, IV1)
+                tmp_packet = self.prepare_packet([msg_sec, sender, receiver, transmission], IV, msg_array[i])
+                if msg_sec == 'В ':
+                    out.append(self.transmit(tmp_packet))
+                elif msg_sec == 'ВА':
+                    sec_packet = self.CCM_frw(tmp_packet, keyset, 1, key_rounds)
+                    out.append(self.transmit(sec_packet))
+                elif msg_sec == 'ВБ':
+                    sec_packet = self.CCM_frw(tmp_packet, keyset, 0, key_rounds)
+                    out.append(self.transmit(sec_packet))
+
+        if type == 'receive':
+            last = -1
+            for i in range(len(msg_array)):
+                tmp_packet = self.receive(msg_array[i])
+                rdata = tmp_packet[0]
+                x1 = tmp_packet[1][12:16]
+                x2 = tmp_packet[1][8:12]
+                current = self.encoder.block_to_number(self.encoder.xor_block(x1, x2))
+                if current > last:
+                    if rdata[0] == 'ВБ':
+                        rec_packet = self.CCM_inv(tmp_packet, keyset, 0, key_rounds)
+                        rec_packet[2] = self.unpad_message(rec_packet[2])
+                        if rec_packet[3] == '                ':  # 16 пробелов
+                            last = current
+                            rec_packet[3] = "OK"
+                    elif rdata[0] == "ВА" and mtype != "ВБ":
+                        rec_packet = self.CCM_inv(tmp_packet, keyset, 1, key_rounds)
+                        rec_packet[2] = self.unpad_message(rec_packet[2])
+                        if rec_packet[3] == '                ':  # 16 пробелов
+                            last = current
+                            rec_packet[3] = "OK"
+                    elif rdata[0] == "В " and mtype == "В ":
+                        rec_packet = tmp_packet
+                        rec_packet[2] = self.unpad_message(rec_packet[2])
+                        if rec_packet[3] == '':
+                            last = current
+                            rec_packet[3] = "N/A"
+                    else:
+                        rec_packet = tmp_packet
+                    out.append(rec_packet)
+        return out
 
     # endregion

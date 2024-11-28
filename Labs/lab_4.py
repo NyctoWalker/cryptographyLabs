@@ -190,18 +190,19 @@ class Lab4Temp:
     # region Пакеты
 
     def prepare_packet(self, data_in, iv_in, msg_in):
-        iv = iv_in+'                ' # Предполагаю что там 16 пробелов
+        print('Prepare packet: вход ', data_in)
+        iv = iv_in + '                '  # Предполагаю что там 16 пробелов
         msg = self.pad_message(msg_in)
         _l = len(self.msg2bin(msg))
         a = ""
 
-        # Метод не дописан, нужно раскомментировать а
         for i in range(5):
             r = self.encoder.to_byte(_l % 32)
             m = self.encoder.get_letter_by_id(r)
             a = m + a  # Не уверен, что именно за num2sym и как в concat влияет порядок
             _l //= 32
-        data_in[4] = a
+        data_in.append(a)
+        print(f'Prepare packet: выход {data_in};{iv};{msg}')
         return [data_in, iv, msg, ""]
 
     @staticmethod
@@ -250,6 +251,7 @@ class Lab4Temp:
 
     # Возможно, не нужно реализовывать и это уже есть
     def textor(self, A1, A2):
+        print(f'Textor:{A1};{A2}.')
         return self.encoder.xor_block(A1, A2)
 
     @staticmethod
@@ -326,24 +328,26 @@ class Lab4Temp:
         _mac = self.textor(_mac, mac)
         return [assdata_in, iv_in, _msg, _mac]
 
-    def CCM(self, ass_data, msg_array, key_in, key_rounds, nonce, type):
+    def CCM(self, ass_data, msg_array, key_in, key_rounds, rcg_rounds, nonce, type):
         mtype, sender, receiver, transmission = ass_data
         # [RCG, rcg_rounds], [[ciph_frw, ciph_inv], cipher_rounds], [sb_frw, sb_inv], _ = cipher_suite
         t1 = receiver + sender
-        t2 = mtype + transmission + '      '  # 6 пробелов
-        t3 = self.encoder.add_alphabet((self.encoder.add_alphabet(t1, t2)), nonce)
+        t2 = mtype + transmission + '     '  # 5 пробелов(скопировал из маткада)
+        # t3 = self.encoder.add_block((self.encoder.add_block(t1, t2)), nonce)
+        t3 = t1 + t2 + nonce
         IV0 = (t3[:8] + t3[12:16] + t3[12:16])
         msg_counter = -1
-        keyset = self.sp_net.produce_round_keys(key_in, key_rounds)
+        keyset = self.sp_net.produce_round_keys(key_in, rcg_rounds)
         out = []
 
         if type == 'send':
             for i in range(len(msg_array)):
                 msg_sec = mtype
                 msg_counter += 1
-                IV1 = ('        ' + self.encoder.number_to_block(msg_counter) + '    ')  # 8+4 пробелов
+                IV1 = ('        ' + self.encoder.number_to_block(msg_counter) + '    ')  # 8+4 пробелов(маткад)
                 IV = self.textor(IV0, IV1)
                 tmp_packet = self.prepare_packet([msg_sec, sender, receiver, transmission], IV, msg_array[i])
+                print('Tmp packet:', tmp_packet)
                 if msg_sec == 'В ':
                     out.append(self.transmit(tmp_packet))
                 elif msg_sec == 'ВА':

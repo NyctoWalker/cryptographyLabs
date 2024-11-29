@@ -87,6 +87,7 @@ print(encryptor.getcolmatr(tests, 0))
 
 XTST = encryptor.prepare_packet(encryptor.getcolmatr(tests, 0), "КОЛЕСО", inputs_array[0])
 print(XTST[1])
+print(encryptor.transmit(XTST))
 print(encryptor.receive(encryptor.transmit(XTST)))
 
 # ------------------------------------------------------------
@@ -185,4 +186,6 @@ print('---[CCM обёртка]---')
 msgs = inputs_array[0]
 ad = ["ВБ", "БОБ   ЬЬ", "АЛИСА ЯЗ", "ЭКЛАМПСИЯ"]
 channel = encryptor.CCM(ad, msgs, "СЕАНСОВЫЙ КЛЮЧИК", 8, 8, "СЕМИХАТОВ КВАНТЫ", "send")
+# print(channel)  # Список списков битов
 transmission = encryptor.CCM(ad, channel, "СЕАНСОВЫЙ КЛЮЧИК", 8, 8, "СЕМИХАТОВ КВАНТЫ", "receive")
+print(transmission)

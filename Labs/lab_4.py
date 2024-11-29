@@ -190,8 +190,10 @@ class Lab4Temp:
     # region Пакеты
 
     def prepare_packet(self, data_in, iv_in, msg_in):
-        print('Prepare packet: вход ', data_in)
-        iv = iv_in + '                '  # Предполагаю что там 16 пробелов
+        # print(f'Prepare packet, вход:{data_in};{iv_in};{msg_in}.')
+        iv = self.encoder.add_block(iv_in, '                ')  # 16 пробелов
+        # iv = iv_in + '                '  # 16 пробелов
+        # iv = '                ' + iv_in  # 16 пробелов
         msg = self.pad_message(msg_in)
         _l = len(self.msg2bin(msg))
         a = ""
@@ -201,8 +203,9 @@ class Lab4Temp:
             m = self.encoder.get_letter_by_id(r)
             a = m + a  # Не уверен, что именно за num2sym и как в concat влияет порядок
             _l //= 32
+        # data[4] = a
         data_in.append(a)
-        print(f'Prepare packet: выход {data_in};{iv};{msg}')
+        # print(f'Prepare packet: выход {data_in};{iv};{msg}')
         return [data_in, iv, msg, ""]
 
     @staticmethod
@@ -229,6 +232,7 @@ class Lab4Temp:
         return self.msg2bin(out + iv + msg + mac)
 
     def receive(self, stream_in):
+        # print(f'[Debug] receive:{stream_in}.')
         p = self.bin2msg(stream_in)
         _m = len(p)
         #  Возможно, тут я не так написал срезы и нужно "подвинуть" на один индекс
@@ -242,23 +246,25 @@ class Lab4Temp:
         #  Что-то нужно будет раскомментировать
         for i in range(5):
             t = _length[i]
-            # l = sym2num  # Проверить что такое sym2num и где это у нас
-            # _l =32*L + l
+            l = self.encoder.from_byte(self.encoder.text2array(t)[0])
+            # print(l)
+            _l = 32*_l + l
         _l //= 5
         message = p[48:48 + _l]
         mac = p[48 + _l: _m - (48 + _l)]
+        print(f'[Debug] Receive, mac:{mac}.')
         return [[_type, _sender, _receiver, _session, _length], _iv, message, mac]
 
     # Возможно, не нужно реализовывать и это уже есть
     def textor(self, A1, A2):
-        print(f'Textor:{A1};{A2}.')
+        # print(f'Textor:{A1};{A2}.')
         return self.encoder.xor_block(A1, A2)
 
     @staticmethod
     def combine(strset_in):
         out = ""
         for i in strset_in:
-            out+=i
+            out += i
         return out
 
     def blockxor(self, A_in, B_in):
@@ -300,6 +306,7 @@ class Lab4Temp:
         return iv_in
 
     def CCM_frw(self, packet_in, key_in, only_mac, r_in):
+        # print(f'[Debug] CCM_frw, вход:{packet_in};{only_mac}.')
         assdata_in, iv_in, msg_in, tmp = packet_in
         data = self.combine(assdata_in)
         _m = len(msg_in)
@@ -311,12 +318,14 @@ class Lab4Temp:
         else:
             _msg = msg_in
             _mac = mac
+        print(f'[Debug] CCM_frw, выход(mac):{[assdata_in, iv_in, _msg, _mac]}.')
         return [assdata_in, iv_in, _msg, _mac]
 
     def CCM_inv(self, packet_in, key_in, only_mac, r_in):
         assdata_in, iv_in, msg_in, mac_in = packet_in
         data = self.combine(assdata_in)
         _m = len(msg_in)
+        # print(_m)
         if only_mac == 0:
             msg = self.enc_CTR(msg_in+mac_in, iv_in, key_in, r_in)
             _msg = msg[0:_m]
@@ -325,16 +334,18 @@ class Lab4Temp:
             _msg = msg_in
             _mac = mac_in
         mac = self.mac_CBC(data + _msg, iv_in, key_in, r_in)
+        print(f'[Debug]CCM_inv:{_mac};{mac}.')  # На CCM receive _mac нулевой
         _mac = self.textor(_mac, mac)
         return [assdata_in, iv_in, _msg, _mac]
 
+    # Разделить send и receive на два метода
     def CCM(self, ass_data, msg_array, key_in, key_rounds, rcg_rounds, nonce, type):
         mtype, sender, receiver, transmission = ass_data
         # [RCG, rcg_rounds], [[ciph_frw, ciph_inv], cipher_rounds], [sb_frw, sb_inv], _ = cipher_suite
         t1 = receiver + sender
         t2 = mtype + transmission + '     '  # 5 пробелов(скопировал из маткада)
-        # t3 = self.encoder.add_block((self.encoder.add_block(t1, t2)), nonce)
-        t3 = t1 + t2 + nonce
+        t3 = self.encoder.add_block((self.encoder.add_block(t1, t2)), nonce)
+        # t3 = t1 + t2 + nonce
         IV0 = (t3[:8] + t3[12:16] + t3[12:16])
         msg_counter = -1
         keyset = self.sp_net.produce_round_keys(key_in, rcg_rounds)
@@ -346,8 +357,9 @@ class Lab4Temp:
                 msg_counter += 1
                 IV1 = ('        ' + self.encoder.number_to_block(msg_counter) + '    ')  # 8+4 пробелов(маткад)
                 IV = self.textor(IV0, IV1)
+                # print(msg_array[i])
                 tmp_packet = self.prepare_packet([msg_sec, sender, receiver, transmission], IV, msg_array[i])
-                print('Tmp packet:', tmp_packet)
+                print('Tmp packet:', tmp_packet, i)
                 if msg_sec == 'В ':
                     out.append(self.transmit(tmp_packet))
                 elif msg_sec == 'ВА':
@@ -357,10 +369,16 @@ class Lab4Temp:
                     sec_packet = self.CCM_frw(tmp_packet, keyset, 0, key_rounds)
                     out.append(self.transmit(sec_packet))
 
+            # Список списков бит превращаем в список бит
+            # _old_out = out.copy()
+            # out = [element for sublist in _old_out for element in sublist]
+
         if type == 'receive':
             last = -1
             for i in range(len(msg_array)):
+                # print(msg_array[i], i)
                 tmp_packet = self.receive(msg_array[i])
+                print('Tmp packet:', tmp_packet, i)
                 rdata = tmp_packet[0]
                 x1 = tmp_packet[1][12:16]
                 x2 = tmp_packet[1][8:12]

@@ -1,12 +1,4 @@
 # Наш вариант - CTR+CBC-MAC
-# 1. Реализовать алгоритм наложения (снятия) подложки на сообщение, а также конвейер обработки отправляемых и
-# принимаемых сообщений.
-# 2. Предусмотреть интерфейсы для использования тестов. Тесты, которые используются  в приложении, опираются на данные,
-# включённые в текстовые файлы.
-# 3. Реализовать криптографическую основу протокола. Наш вариант - подход MAC then Encrypt с применением режимов
-# CTR и CBC.
-# 4. Реализовать программный компонент отвечающий за сессию протокола. Убедиться, что в рамках приёма и передачи
-# сообщений не производится значимого объёма необязательных вычислений (отсутствует повторный пересчёт известных значений).
 # 5. Провести комплексное тестирование полученного решения. Предусмотреть этап верификации (корректность реализации
 # относительно указаний в приложении) и валидации (корректности функционирования с точки зрения практической задачи)
 # модели протокола.
@@ -35,7 +27,7 @@ class Lab4Temp:
         elif s_in == '0':
             return 0
         else:
-            return self.encoder.text2array(s_in)  # Под замену, непонятно что в примере подразумевалось
+            return self.encoder.text2array(s_in)
 
     def is_sym(self, s_in: str):
         return s_in in self.encoder.data_alphabet
@@ -108,7 +100,6 @@ class Lab4Temp:
         pad_length = 0  # А вот тут вообще если remainder != 0, этот параметр не задаётся
         numblocks = 0
         if remainder == 0:
-            # Проверка: если удалить filler, подсветка синтаксиса скажет что такой переменной нет ниже
             tb = self.submatrix(bin_msg_in, _m-20, _m-1, 0, 0)
             ender = self.submatrix(tb, 17, 19, 0, 0)
             if ender == ['0', '0', '1']:
@@ -127,7 +118,7 @@ class Lab4Temp:
                             tmp = tb[j]
                             if tmp == 1:
                                 f = 0
-                                break  # Вообще без понятия зачем цикл если потом в любом случае используем break
+                                break
         return [f, numblocks, pad_length]
 
     @staticmethod
@@ -178,8 +169,8 @@ class Lab4Temp:
         _m = len(bins)
         t = self.check_padding(bins)
         if t[0] == 1:
-            filler = [0, 0, 0]  # Аналогично такому же филлеру выше
-            pl = t[1]  # ??? я не понял то за индексы
+            filler = [0, 0, 0]
+            pl = t[1]
             tmp = filler
             return self.bin2msg(tmp)
         else:  # Оно тут просто для наглядности
@@ -212,7 +203,6 @@ class Lab4Temp:
     def validate_packet(packet_in):
         data, iv, msg, mac = packet_in
         f = 1  # Возможно, его вообще не стоит задавать
-        #  Не уверен, что к data можно обращаться по этим индексам
         t = data[0][0]
         s = data[0][1]
         ml = len(mac)
@@ -224,7 +214,7 @@ class Lab4Temp:
             f = 0
         elif ml != 0 and s == " ":
             f = 0
-        return f  # Если сверху будет заменено на return 0, тот можно return 1
+        return f  # Если сверху будет заменено на return 0, тут можно return 1
 
     def transmit(self, packet_in):
         data, iv, msg, mac = packet_in
@@ -235,7 +225,7 @@ class Lab4Temp:
         # print(f'[Debug] receive:{stream_in}.')
         p = self.bin2msg(stream_in)
         _m = len(p)
-        #  Возможно, тут я не так написал срезы и нужно "подвинуть" на один индекс
+
         _type = p[:2]
         _sender = p[2:10]
         _receiver = p[10:18]
@@ -243,7 +233,6 @@ class Lab4Temp:
         _length = p[27:32]
         _iv = p[32:48]
         _l = 0
-        #  Что-то нужно будет раскомментировать
         for i in range(5):
             t = _length[i]
             l = self.encoder.from_byte(self.encoder.text2array(t)[0])
@@ -255,7 +244,6 @@ class Lab4Temp:
         print(f'[Debug] Receive, mac:{mac}.')
         return [[_type, _sender, _receiver, _session, _length], _iv, message, mac]
 
-    # Возможно, не нужно реализовывать и это уже есть
     def textor(self, A1, A2):
         # print(f'Textor:{A1};{A2}.')
         return self.encoder.xor_block(A1, A2)
@@ -287,7 +275,6 @@ class Lab4Temp:
         for i in range(m):
             iv_ender = self.encoder.number_to_block(ctr)
             iv = iv_starter + iv_ender
-            # Возможно тут какой-то другой метод
             keystream = self.sp_net.fwd_SPNet2(iv, key_in, r_in)
             inp = msg_in[i*16:i*16 + 16]
             out += self.textor(inp, keystream)

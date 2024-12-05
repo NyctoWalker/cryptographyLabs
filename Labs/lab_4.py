@@ -335,65 +335,83 @@ class Lab4Temp:
         t2 = mtype + transmission + '     '  # 5 пробелов(скопировал из маткада)
         t3 = self.encoder.add_block((self.encoder.add_block(t1, t2)), nonce)
         # t3 = t1 + t2 + nonce
-        IV0 = (t3[:8] + t3[12:16] + t3[12:16])
-        msg_counter = -1
         keyset = self.sp_net.produce_round_keys(key_in, rcg_rounds)
         out = []
 
         if type == 'send':
-            for i in range(len(msg_array)):
-                msg_sec = mtype
-                msg_counter += 1
-                IV1 = ('        ' + self.encoder.number_to_block(msg_counter) + '    ')  # 8+4 пробелов(маткад)
-                IV = self.textor(IV0, IV1)
-                # print(msg_array[i])
-                tmp_packet = self.prepare_packet([msg_sec, sender, receiver, transmission], IV, msg_array[i])
-                # print('Tmp packet:', tmp_packet, i)
-                if msg_sec == 'В ':
-                    out.append(self.transmit(tmp_packet))
-                elif msg_sec == 'ВА':
-                    sec_packet = self.CCM_frw(tmp_packet, keyset, 1, key_rounds)
-                    out.append(self.transmit(sec_packet))
-                elif msg_sec == 'ВБ':
-                    sec_packet = self.CCM_frw(tmp_packet, keyset, 0, key_rounds)
-                    out.append(self.transmit(sec_packet))
-
+            IV0 = (t3[:8] + t3[12:16] + t3[12:16])
+            out = self.CCM_send(msg_array, mtype, IV0,
+                                sender, receiver, transmission,
+                                keyset, key_rounds)
             # Список списков бит превращаем в список бит
             # _old_out = out.copy()
             # out = [element for sublist in _old_out for element in sublist]
+        elif type == 'receive':
+            out = self.CCM_receive(msg_array, mtype,
+                                   keyset, key_rounds)
+        else:
+            raise ValueError('Тип сообщения не соответствует send или receive')
 
-        if type == 'receive':
-            last = -1
-            for i in range(len(msg_array)):
-                # print(msg_array[i], i)
-                tmp_packet = self.receive(msg_array[i])
-                # print('Tmp packet:', tmp_packet, i)
-                rdata = tmp_packet[0]
-                x1 = tmp_packet[1][12:16]
-                x2 = tmp_packet[1][8:12]
-                current = self.encoder.block_to_number(self.encoder.xor_block(x1, x2))
-                if current > last:
-                    if rdata[0] == 'ВБ':
-                        rec_packet = self.CCM_inv(tmp_packet, keyset, 0, key_rounds)
-                        rec_packet[2] = self.unpad_message(rec_packet[2])
-                        if rec_packet[3] == '                ':  # 16 пробелов
-                            last = current
-                            rec_packet[3] = "OK"
-                    elif rdata[0] == "ВА" and mtype != "ВБ":
-                        rec_packet = self.CCM_inv(tmp_packet, keyset, 1, key_rounds)
-                        rec_packet[2] = self.unpad_message(rec_packet[2])
-                        if rec_packet[3] == '                ':  # 16 пробелов
-                            last = current
-                            rec_packet[3] = "OK"
-                    elif rdata[0] == "В " and mtype == "В ":
-                        rec_packet = tmp_packet
-                        rec_packet[2] = self.unpad_message(rec_packet[2])
-                        if rec_packet[3] == '':
-                            last = current
-                            rec_packet[3] = "N/A"
-                    else:
-                        rec_packet = tmp_packet
-                    out.append(rec_packet)
+        return out
+
+    def CCM_send(self, msg_array, mtype, IV0,
+                 sender, receiver, transmission,
+                 keyset, key_rounds):
+        out = []
+        msg_counter = -1
+        for i in range(len(msg_array)):
+            msg_sec = mtype
+            msg_counter += 1
+            IV1 = ('        ' + self.encoder.number_to_block(msg_counter) + '    ')  # 8+4 пробелов(маткад)
+            IV = self.textor(IV0, IV1)
+            # print(msg_array[i])
+            tmp_packet = self.prepare_packet([msg_sec, sender, receiver, transmission], IV, msg_array[i])
+            # print('Tmp packet:', tmp_packet, i)
+            if msg_sec == 'В ':
+                out.append(self.transmit(tmp_packet))
+            elif msg_sec == 'ВА':
+                sec_packet = self.CCM_frw(tmp_packet, keyset, 1, key_rounds)
+                out.append(self.transmit(sec_packet))
+            elif msg_sec == 'ВБ':
+                sec_packet = self.CCM_frw(tmp_packet, keyset, 0, key_rounds)
+                out.append(self.transmit(sec_packet))
+        return out
+
+    def CCM_receive(self, msg_array, mtype, keyset, key_rounds):
+        out = []
+        last = -1
+        for i in range(len(msg_array)):
+            # print(msg_array[i], i)
+            tmp_packet = self.receive(msg_array[i])
+            # print('Tmp packet:', tmp_packet, i)
+            rdata = tmp_packet[0]
+            x1 = tmp_packet[1][12:16]
+            x2 = tmp_packet[1][8:12]
+            current = self.encoder.block_to_number(self.encoder.xor_block(x1, x2))
+            if current > last:
+                # out.append(rec_packet)
+                if rdata[0] == 'ВБ':
+                    rec_packet = self.CCM_inv(tmp_packet, keyset, 0, key_rounds)
+                    rec_packet[2] = self.unpad_message(rec_packet[2])
+                    if rec_packet[3] == '                ':  # 16 пробелов
+                        last = current
+                        rec_packet[3] = "OK"
+                elif rdata[0] == "ВА" and mtype != "ВБ":
+                    rec_packet = self.CCM_inv(tmp_packet, keyset, 1, key_rounds)
+                    rec_packet[2] = self.unpad_message(rec_packet[2])
+                    if rec_packet[3] == '                ':  # 16 пробелов
+                        last = current
+                        rec_packet[3] = "OK"
+                elif rdata[0] == "В " and mtype == "В ":
+                    rec_packet = tmp_packet
+                    rec_packet[2] = self.unpad_message(rec_packet[2])
+                    if rec_packet[3] == '':
+                        last = current
+                        rec_packet[3] = "N/A"
+                else:
+                    rec_packet = tmp_packet
+                out.append(rec_packet[2][0])
+        out = ''.join(out.copy())
         return out
 
     # endregion

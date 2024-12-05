@@ -189,3 +189,5 @@ channel = encryptor.CCM(ad, msgs, "СЕАНСОВЫЙ КЛЮЧИК", 8, 8, "СЕ
 # print(channel)  # Список списков битов
 transmission = encryptor.CCM(ad, channel, "СЕАНСОВЫЙ КЛЮЧИК", 8, 8, "СЕМИХАТОВ КВАНТЫ", "receive")
 print(transmission)
+print(transmission[0])
+print(transmission[0][1])

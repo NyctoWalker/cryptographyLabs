@@ -224,6 +224,7 @@ class Lab4Temp:
     def receive(self, stream_in):
         # print(f'[Debug] receive:{stream_in}.')
         p = self.bin2msg(stream_in)
+        # print(f'[Debug] p, bin2msg:{p}.')
         _m = len(p)
 
         _type = p[:2]
@@ -240,8 +241,9 @@ class Lab4Temp:
             _l = 32*_l + l
         _l //= 5
         message = p[48:48 + _l]
-        mac = p[48 + _l: _m - (48 + _l)]
-        print(f'[Debug] Receive, mac:{mac}.')
+        mac = p[48 + _l:_m]
+        # print(f'[Debug] l,interval:{_l};{48 + _l};{_m}.')
+        # print(f'[Debug] Receive, mac:{mac}.')
         return [[_type, _sender, _receiver, _session, _length], _iv, message, mac]
 
     def textor(self, A1, A2):
@@ -305,7 +307,7 @@ class Lab4Temp:
         else:
             _msg = msg_in
             _mac = mac
-        print(f'[Debug] CCM_frw, выход(mac):{[assdata_in, iv_in, _msg, _mac]}.')
+        # print(f'[Debug] CCM_frw, выход(mac):{[assdata_in, iv_in, _msg, _mac]}.')
         return [assdata_in, iv_in, _msg, _mac]
 
     def CCM_inv(self, packet_in, key_in, only_mac, r_in):
@@ -321,7 +323,7 @@ class Lab4Temp:
             _msg = msg_in
             _mac = mac_in
         mac = self.mac_CBC(data + _msg, iv_in, key_in, r_in)
-        print(f'[Debug]CCM_inv:{_mac};{mac}.')  # На CCM receive _mac нулевой
+        # print(f'[Debug]CCM_inv:{_mac};{mac}.')  # На CCM receive _mac нулевой
         _mac = self.textor(_mac, mac)
         return [assdata_in, iv_in, _msg, _mac]
 
@@ -346,7 +348,7 @@ class Lab4Temp:
                 IV = self.textor(IV0, IV1)
                 # print(msg_array[i])
                 tmp_packet = self.prepare_packet([msg_sec, sender, receiver, transmission], IV, msg_array[i])
-                print('Tmp packet:', tmp_packet, i)
+                # print('Tmp packet:', tmp_packet, i)
                 if msg_sec == 'В ':
                     out.append(self.transmit(tmp_packet))
                 elif msg_sec == 'ВА':
@@ -365,7 +367,7 @@ class Lab4Temp:
             for i in range(len(msg_array)):
                 # print(msg_array[i], i)
                 tmp_packet = self.receive(msg_array[i])
-                print('Tmp packet:', tmp_packet, i)
+                # print('Tmp packet:', tmp_packet, i)
                 rdata = tmp_packet[0]
                 x1 = tmp_packet[1][12:16]
                 x2 = tmp_packet[1][8:12]

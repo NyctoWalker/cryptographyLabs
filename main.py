@@ -1,6 +1,7 @@
 # from Tests.lab_1_tests import *
 # from Tests.lab_2_tests import *
 # from Tests.lab_3_tests import *
+import copy
 
 from Labs.lab_4 import *
 
@@ -67,7 +68,6 @@ TST4 = encryptor.pad_message(inputs_array[3])
 print("TST4 check padding: ", encryptor.check_padding(encryptor.msg2bin(TST4)))
 print("TST4 unpad message: ", len(encryptor.msg2bin(encryptor.unpad_message(TST4))))
 TST41 = encryptor.pad_message(TST4)
-# Тут должно быть [1, 3, 102]
 print("TST41 check padding: ", encryptor.check_padding(encryptor.msg2bin(TST41)))
 print("TST41 unpad message: ", len(encryptor.msg2bin(encryptor.unpad_message(TST41))))
 
@@ -82,7 +82,7 @@ print(TST62)
 print("TST41 check padding: ", encryptor.check_padding(TST62))
 print("TST41 unpad message: ", len(encryptor.msg2bin(encryptor.unpad_message(TST61))))
 
-print('\n[Подготовка пакетов + ксор блоков из 80 бит]')
+print('\n[Подготовка пакетов]')
 print(encryptor.getcolmatr(tests, 0))
 
 XTST = encryptor.prepare_packet(encryptor.getcolmatr(tests, 0), "КОЛЕСО", inputs_array[0])
@@ -183,8 +183,6 @@ print()
 
 # ------------------------------------------------------------
 print('---[CCM обёртка]---')
-# msg = inputs_array[0]
-# ad = ["ВБ", "БОБ   ЬЬ", "АЛИСА ЯЗ", "ЭКЛАМПСИЯ"]
 for msg in inputs_array[:3]:
     print('***************************')
     print('inp: ', msg)
@@ -194,3 +192,19 @@ for msg in inputs_array[:3]:
         # print(channel)  # Список списков битов
         transmission = encryptor.CCM(ad, channel, "СЕАНСОВЫЙ КЛЮЧИК", 8, 8, "СЕМИХАТОВ КВАНТЫ", "receive")
         print(transmission)
+
+print('---[Вмешательство в сообщение]---')
+msg = inputs_array[0]
+ad = ["ВБ", "БОБ   ЬЬ", "АЛИСА ЯЗ", "ЭКЛАМПСИЯ"]
+channel = encryptor.CCM(ad, msg, "СЕАНСОВЫЙ КЛЮЧИК", 8, 8, "СЕМИХАТОВ КВАНТЫ", "send")
+# print(channel)
+channel1, channel2 = copy.deepcopy(channel), copy.deepcopy(channel)
+channel1[32] = encryptor.invert(channel1[32])
+channel2[200] = encryptor.invert(channel2[200])
+
+transmission = encryptor.CCM(ad, channel, "СЕАНСОВЫЙ КЛЮЧИК", 8, 8, "СЕМИХАТОВ КВАНТЫ", "receive")
+print(transmission)
+transmission1 = encryptor.CCM(ad, channel1, "СЕАНСОВЫЙ КЛЮЧИК", 8, 8, "СЕМИХАТОВ КВАНТЫ", "receive")
+print(transmission1)
+transmission2 = encryptor.CCM(ad, channel2, "СЕАНСОВЫЙ КЛЮЧИК", 8, 8, "СЕМИХАТОВ КВАНТЫ", "receive")
+print(transmission2)
